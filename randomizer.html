@@ -200,13 +200,13 @@ void main() {
     vec2 p = -1.0 + 0.650 * q;
     p.x *= u_resolution.x/u_resolution.y;
 
-    vec2 pos = vec2(st.x*0.7 + (u_time*0.18), st.y*0.7 + (u_time*.18));
+    vec2 pos = vec2(st.x*0.7 + (u_time*0.18), st.y*0.17 + (u_time*.18));
     vec3 dist = vec3(snoise(pos)*u_mouse.y);
     vec2 distorter = vec2(dist.rg) * vec2(0.01);
 
     //vignette
     ///////////////
-    float r = length( p * 0.45);
+    float r = length( p * 0.35);
     vec3 col = vec3(0.64,0.25,0.0 );
 
     float f = fbm( 7.0*p );
@@ -221,8 +221,8 @@ void main() {
     float r2 = length( uv * 200.0);
     vec3 col2 = vec3(0.0,0.0,0.0 );
 
-    float f2 = fbm( 10.0*-p );
-    col2 = mix(-col2, vec3(0.9,0.6,0.6),f2);
+    float f2 = fbm( 20.0*-p );
+    col2 = mix(-col2, vec3(-0.6,0.6,0.6),f2);
 
     f2 = smoothstep( .19, 0.92, r2 );
     col2 = mix( col2, -vec3(0.0),f2+0.5);
@@ -234,9 +234,10 @@ void main() {
     vec4 distortedBackground = texture2D(theFigureInTheWall, fract(uv_2)+distorter);
     vec4 flowerBackground = distortedFlower * distortedFlower.a + distortedBackground * (1.0 - distortedFlower.a);
 
-      gl_FragColor = vec4(col,1.0)+flowerBackground;
+    gl_FragColor = vec4(col,1.0)+flowerBackground;
     //  gl_FragColor = flowerBackground;
     //  gl_FragColor = distortedFlower * distortedFlower.a - vec4(col,1.0);
+    //  gl_FragColor = uv_2;
 }
 `;
 
@@ -245,20 +246,22 @@ let imConflictedButSittingWithMyself;
 let iWasMoving = 2,throughSpace = 5,aFaintFigureMovingBackAndFourth,aFaintFigureMovingUpAndDown;
 
 let aFormBeganToTakeShape = [
-                  {aCrawlingMovementOfColor:['e16c58','f89c2b','db391e','db391e','84372a','7c0a0a','7c0a0a'], interminableGrotesque:'ffd59a', wavesOfOpticHorrorInLightRed:200, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:100, wavesOfOpticHorrorInDarkGreen:180, wavesOfOpticHorrorInLightBlue:70, wavesOfOpticHorrorInDarkBlue:160, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'a9b55b', headlongPlungesOfEqualDistraction:'ff5fe3',aCommonCenter:'7c0a0a', outlinesOfConfusion:'7c0a0a', aFormlessFigure:2, lookingBackAtMe:1.0, lookingBackAtHerself:0.0, hallucinations:4.0}, //1
+                  {aCrawlingMovementOfColor:['e16c58','f89c2b','db391e','db391e','84372a','7c0a0a','7c0a0a'], interminableGrotesque:'ffd59a', wavesOfOpticHorrorInLightRed:230, wavesOfOpticHorrorInDarkRed:230, wavesOfOpticHorrorInLightGreen:120, wavesOfOpticHorrorInDarkGreen:160, wavesOfOpticHorrorInLightBlue:110, wavesOfOpticHorrorInDarkBlue:120, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'a9b55b', headlongPlungesOfEqualDistraction:'ff5fe3',aCommonCenter:'7c0a0a', outlinesOfConfusion:'7c0a0a', aFormlessFigure:2, lookingBackAtMe:1.0, lookingBackAtHerself:0.0, hallucinations:4.0}, //1
                   {aCrawlingMovementOfColor:['e5cd00','867800','f35a1b','f38533','4E3620','a99700','4E3620'], interminableGrotesque:'e03500', wavesOfOpticHorrorInLightRed:240, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:200, wavesOfOpticHorrorInDarkGreen:220, wavesOfOpticHorrorInLightBlue:120, wavesOfOpticHorrorInDarkBlue:140, wavesOfOpticHorrorFading:.04, SproutingEndlessConvolution:'837c51', headlongPlungesOfEqualDistraction:'fff4d8',aCommonCenter:'fff4d8', outlinesOfConfusion:'fff4d8', aFormlessFigure:0, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:0.0}, //3 //alternate stroke green 837c51 orange ff6d3c red ff3a43
-                  {aCrawlingMovementOfColor:['57ca8f','f68d40','f68d40','35778E','4cc1e9','f43628','ff7a30'], interminableGrotesque:'f4effd', wavesOfOpticHorrorInLightRed:250, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:110, wavesOfOpticHorrorInDarkGreen:140, wavesOfOpticHorrorInLightBlue:70, wavesOfOpticHorrorInDarkBlue:90, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'867c51', headlongPlungesOfEqualDistraction:'f4effd',aCommonCenter:'f43628', outlinesOfConfusion:'f4effd', aFormlessFigure:9, lookingBackAtMe:4.0, lookingBackAtHerself:2.0, hallucinations:2.0}, //4
-                  {aCrawlingMovementOfColor:['eacfff','F4D1AD','f85d52','DBA68E','fcf051','eacfff','f4ee9f'], interminableGrotesque:'7b696f', wavesOfOpticHorrorInLightRed:220, wavesOfOpticHorrorInDarkRed:250, wavesOfOpticHorrorInLightGreen:220, wavesOfOpticHorrorInDarkGreen:240, wavesOfOpticHorrorInLightBlue:250, wavesOfOpticHorrorInDarkBlue:255, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'befa07', headlongPlungesOfEqualDistraction:'ff230a',aCommonCenter:'feefc1', outlinesOfConfusion:'fe430f', aFormlessFigure:3, lookingBackAtMe:5.0, lookingBackAtHerself:2.0, hallucinations:30.0}, //6
-                  {aCrawlingMovementOfColor:['ffeab0','f9a498','ce333e','ea3d5e','951b12','ffeab0','611b1d'], interminableGrotesque:'350d6b', wavesOfOpticHorrorInLightRed:215, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:120, wavesOfOpticHorrorInDarkGreen:230, wavesOfOpticHorrorInLightBlue:30, wavesOfOpticHorrorInDarkBlue:60, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'0a6845', headlongPlungesOfEqualDistraction:'d1d649',aCommonCenter:'7b696f', outlinesOfConfusion:'d1d649', aFormlessFigure:4, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:0.0}, //7
+                  {aCrawlingMovementOfColor:['57ca8f','f68d40','f68d40','35778E','4cc1e9','f43628','ff7a30'], interminableGrotesque:'b5dafb', wavesOfOpticHorrorInLightRed:250, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:110, wavesOfOpticHorrorInDarkGreen:140, wavesOfOpticHorrorInLightBlue:70, wavesOfOpticHorrorInDarkBlue:90, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'867c51', headlongPlungesOfEqualDistraction:'f4effd',aCommonCenter:'f43628', outlinesOfConfusion:'f4effd', aFormlessFigure:9, lookingBackAtMe:4.0, lookingBackAtHerself:2.0, hallucinations:2.0}, //4
+                  {aCrawlingMovementOfColor:['c1acd1','c9ac8f','f85d52','bf927e','cac145','c5afd5','f4ee9f'], interminableGrotesque:'9e744a', wavesOfOpticHorrorInLightRed:200, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:110, wavesOfOpticHorrorInDarkGreen:150, wavesOfOpticHorrorInLightBlue:50, wavesOfOpticHorrorInDarkBlue:100, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'befa07', headlongPlungesOfEqualDistraction:'ff230a',aCommonCenter:'feefc1', outlinesOfConfusion:'fe430f', aFormlessFigure:3, lookingBackAtMe:5.0, lookingBackAtHerself:2.0, hallucinations:30.0}, //6
+                  //{aCrawlingMovementOfColor:['ffeab0','f9a498','ce333e','ea3d5e','951b12','ffeab0','611b1d'], interminableGrotesque:'350d6b', wavesOfOpticHorrorInLightRed:215, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:120, wavesOfOpticHorrorInDarkGreen:230, wavesOfOpticHorrorInLightBlue:30, wavesOfOpticHorrorInDarkBlue:60, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'0a6845', headlongPlungesOfEqualDistraction:'d1d649',aCommonCenter:'7b696f', outlinesOfConfusion:'d1d649', aFormlessFigure:4, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:0.0}, //7
+                  {aCrawlingMovementOfColor:['ffeab0','f9a498','ce333e','ea3d5e','951b12','ffeab0','611b1d'], interminableGrotesque:'c0a6e3', wavesOfOpticHorrorInLightRed:215, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:120, wavesOfOpticHorrorInDarkGreen:130, wavesOfOpticHorrorInLightBlue:30, wavesOfOpticHorrorInDarkBlue:60, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'0a6845', headlongPlungesOfEqualDistraction:'d1d649',aCommonCenter:'7b696f', outlinesOfConfusion:'d1d649', aFormlessFigure:4, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:0.0}, //7
                   {aCrawlingMovementOfColor:['bc5b2b','744E48','68342F','636200','8D674E','513934','823B30'], interminableGrotesque:'513c37', wavesOfOpticHorrorInLightRed:40, wavesOfOpticHorrorInDarkRed:55, wavesOfOpticHorrorInLightGreen:40, wavesOfOpticHorrorInDarkGreen:55, wavesOfOpticHorrorInLightBlue:30, wavesOfOpticHorrorInDarkBlue:50, wavesOfOpticHorrorFading:.04, SproutingEndlessConvolution:'837c51', headlongPlungesOfEqualDistraction:'ff6d3c',aCommonCenter:'513934', outlinesOfConfusion:'837c51', aFormlessFigure:1, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:20.0}, //8 interminableGrotesque:'96d4d3'
                   {aCrawlingMovementOfColor:['b02529','d9d56a','eb9c2a','b55b91','b02529','e3633d','b02529'], interminableGrotesque:'020101', wavesOfOpticHorrorInLightRed:160, wavesOfOpticHorrorInDarkRed:170, wavesOfOpticHorrorInLightGreen:160, wavesOfOpticHorrorInDarkGreen:165, wavesOfOpticHorrorInLightBlue:160, wavesOfOpticHorrorInDarkBlue:165, wavesOfOpticHorrorFading:.04, SproutingEndlessConvolution:'857c51', headlongPlungesOfEqualDistraction:'8c8c8c',aCommonCenter:'B68D81', outlinesOfConfusion:'8c8c8c', aFormlessFigure:6, lookingBackAtMe:4.0, lookingBackAtHerself:2.0, hallucinations:5.0}, //9
-                  {aCrawlingMovementOfColor:['ff4b64','B4677C','BD7D80','91332E','AB5B64','f23c54','682E46'], interminableGrotesque:'857c51', wavesOfOpticHorrorInLightRed:160, wavesOfOpticHorrorInDarkRed:170, wavesOfOpticHorrorInLightGreen:130, wavesOfOpticHorrorInDarkGreen:240, wavesOfOpticHorrorInLightBlue:210, wavesOfOpticHorrorInDarkBlue:250, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'682E46', headlongPlungesOfEqualDistraction:'6c3fa3',aCommonCenter:'95010f', outlinesOfConfusion:'6c3fa3', aFormlessFigure:7, lookingBackAtMe:6.0, lookingBackAtHerself:2.0, hallucinations:10.0}, //10
+                  {aCrawlingMovementOfColor:['dc4056','B4677C','BD7D80','91332E','AB5B64','f23c54','682E46'], interminableGrotesque:'9c9054', wavesOfOpticHorrorInLightRed:215, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:50, wavesOfOpticHorrorInDarkGreen:80, wavesOfOpticHorrorInLightBlue:80, wavesOfOpticHorrorInDarkBlue:120, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'682E46', headlongPlungesOfEqualDistraction:'6c3fa3',aCommonCenter:'95010f', outlinesOfConfusion:'6c3fa3', aFormlessFigure:7, lookingBackAtMe:6.0, lookingBackAtHerself:2.0, hallucinations:10.0}, //10
                   {aCrawlingMovementOfColor:['3E652D','af75b3','27c9ba','1E3E21','7D7480','c9bc48','af75b3'], interminableGrotesque:'c4d19a', wavesOfOpticHorrorInLightRed:250, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:180, wavesOfOpticHorrorInDarkGreen:230, wavesOfOpticHorrorInLightBlue:205, wavesOfOpticHorrorInDarkBlue:215, wavesOfOpticHorrorFading:.04, SproutingEndlessConvolution:'857c51', headlongPlungesOfEqualDistraction:'27c9ba',aCommonCenter:'1E3E21', outlinesOfConfusion:'27c9ba', aFormlessFigure:8, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:40.0}, //11
-                  {aCrawlingMovementOfColor:['99020f','ff5015','7d60e2','ff2616','ffb87e','ff5015','513e94'], interminableGrotesque:'3ce8e5', wavesOfOpticHorrorInLightRed:220, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:40, wavesOfOpticHorrorInDarkGreen:180, wavesOfOpticHorrorInLightBlue:110, wavesOfOpticHorrorInDarkBlue:250, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'00aa2c', headlongPlungesOfEqualDistraction:'00aa2c',aCommonCenter:'8a0a33', outlinesOfConfusion:'d20648', aFormlessFigure:5, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:2.0}, //12
+                  {aCrawlingMovementOfColor:['99020f','ff5015','7d60e2','c64d44','ffb87e','cc3025','513e94'], interminableGrotesque:'3adfdc', wavesOfOpticHorrorInLightRed:220, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:40, wavesOfOpticHorrorInDarkGreen:180, wavesOfOpticHorrorInLightBlue:110, wavesOfOpticHorrorInDarkBlue:250, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'00aa2c', headlongPlungesOfEqualDistraction:'00aa2c',aCommonCenter:'8a0a33', outlinesOfConfusion:'d20648', aFormlessFigure:5, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:2.0}, //12
 ];
 
 let aDividedMind = 6,tryingToCombine;
 let whatAmISeeing;
+let aMovement;
 let myFlowerWasBlooming;
 let asIFallFurtherIntoMyThoughts;
 let womenCreepingOutOfTheWall = 28.3;
@@ -268,9 +271,10 @@ function setup() {
   pixelDensity(3.0);
   createCanvas(windowWidth, windowHeight,WEBGL);
   asIFallFurtherIntoMyThoughts = new Random();
-  lookingBackAtMe = asIFallFurtherIntoMyThoughts.random_int(1,6)
-  whatAmISeeing = asIFallFurtherIntoMyThoughts.random_int(0,9);
-  myFlowerWasBlooming = asIFallFurtherIntoMyThoughts.random_int(0,9);
+  aMovement = asIFallFurtherIntoMyThoughts.random_dec()
+  lookingBackAtMe = 4//asIFallFurtherIntoMyThoughts.random_int(1,6);
+  whatAmISeeing = 8//asIFallFurtherIntoMyThoughts.random_int(0,9);
+  myFlowerWasBlooming = 4//asIFallFurtherIntoMyThoughts.random_int(0,9);
   console.log(whatAmISeeing);
   iWasLookingAtTheWall = createGraphics(windowWidth,windowHeight);
   theViewFromThisRoom = createGraphics(windowWidth,windowHeight);
@@ -283,7 +287,7 @@ function draw() {
     // we are in the headless context
     womenCreepingOutOfTheWall = aFormBeganToTakeShape[whatAmISeeing].hallucinations;
   } else{
-    womenCreepingOutOfTheWall = (mouseX-windowWidth/2)/9;
+    womenCreepingOutOfTheWall = (mouseX-windowWidth/2)/18;
   }
   bodiesStartedToEmerge.setUniform("u_resolution", [width, height]);
   bodiesStartedToEmerge.setUniform("u_time", millis() / 10000.0);
@@ -325,12 +329,12 @@ function chrysanthemum(){
       push();
       iWasLookingAtTheWall.rotate(2.3*i);
       iWasLookingAtTheWall.strokeWeight(3);
-      iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].headlongPlungesOfEqualDistraction);
+      iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
       iWasLookingAtTheWall.bezier(0,-windowHeight/100,windowHeight/6,windowHeight/11,0,windowHeight/1.7,0,0);
       pop();
   }
   push();
-  iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].headlongPlungesOfEqualDistraction);
+  iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
   iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCommonCenter);
   iWasLookingAtTheWall.ellipse(0,0,windowHeight/20);
   pop();
@@ -437,11 +441,11 @@ function foxglove(){
   //stem
   console.log('foxglove');
   iWasLookingAtTheWall.push();
-  iWasLookingAtTheWall.translate(windowWidth/2,windowHeight/3.3);
+  iWasLookingAtTheWall.translate(windowWidth/2,windowHeight/3.6);
   iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].SproutingEndlessConvolution);
   iWasLookingAtTheWall.strokeWeight(18);
   iWasLookingAtTheWall.noFill();
-  iWasLookingAtTheWall.bezier(0,windowHeight/-8,0,windowHeight/4,windowHeight/80,windowHeight/6,windowHeight/80,windowHeight/1.9);
+  iWasLookingAtTheWall.bezier(0,windowHeight/-8,0,windowHeight/5.5,windowHeight/80,windowHeight/6,windowHeight/80,windowHeight/1.9);
   iWasLookingAtTheWall.pop();
   //petals right
   let sheLovesMe = 0;
@@ -450,7 +454,8 @@ function foxglove(){
   for(let i = 0; i < aDividedMind; i++){
       iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
       iWasLookingAtTheWall.strokeWeight(4);
-      iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].headlongPlungesOfEqualDistraction);
+      iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
+      //iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].headlongPlungesOfEqualDistraction);
       iWasLookingAtTheWall.push();
       iWasLookingAtTheWall.translate(0,(sheLovesMe*windowHeight/13)-windowHeight/5);
       iWasLookingAtTheWall.rotate(0.1);
@@ -465,7 +470,7 @@ function foxglove(){
     for(let i = 0; i < aDividedMind; i++){
         iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
         iWasLookingAtTheWall.strokeWeight(4);
-        iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].headlongPlungesOfEqualDistraction);
+        iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
         iWasLookingAtTheWall. push()
         iWasLookingAtTheWall.translate(0,(sheLovesMeNot*windowHeight/14)-windowHeight/5);
         iWasLookingAtTheWall. rotate(0.1)
