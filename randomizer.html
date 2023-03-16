@@ -149,10 +149,9 @@ vec2 radialNoise(vec2 texCoord, float frequency, float amplitude, float time) {
     return noiseVector * amplitude * (1.0 - distance); // apply amplitude and distance attenuation
 }
 
-vec2 tile (vec2 _st, float _zoom) {
+vec2 tile(vec2 _st, float _zoom){
     _st *= _zoom;
-    _st.x += step(1.,mod(_st.y,lookingBackAtHerself))*.5;
-    return fract(_st);
+    return _st;
 }
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -272,9 +271,9 @@ function setup() {
   createCanvas(windowWidth, windowHeight,WEBGL);
   asIFallFurtherIntoMyThoughts = new Random();
   aMovement = asIFallFurtherIntoMyThoughts.random_dec()
-  lookingBackAtMe = 4//asIFallFurtherIntoMyThoughts.random_int(1,6);
-  whatAmISeeing = 8//asIFallFurtherIntoMyThoughts.random_int(0,9);
-  myFlowerWasBlooming = 4//asIFallFurtherIntoMyThoughts.random_int(0,9);
+  lookingBackAtMe = 1//asIFallFurtherIntoMyThoughts.random_int(1,6);
+  whatAmISeeing = asIFallFurtherIntoMyThoughts.random_int(0,9);
+  myFlowerWasBlooming = asIFallFurtherIntoMyThoughts.random_int(0,9);
   console.log(whatAmISeeing);
   iWasLookingAtTheWall = createGraphics(windowWidth,windowHeight);
   theViewFromThisRoom = createGraphics(windowWidth,windowHeight);
@@ -360,7 +359,7 @@ function hydrangea(){
     iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
     iWasLookingAtTheWall.noStroke();
     iWasLookingAtTheWall.push()
-    iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].headlongPlungesOfEqualDistraction);
+    iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
     iWasLookingAtTheWall.strokeWeight(2)
     iWasLookingAtTheWall.rotate(PI / 1.5)
     iWasLookingAtTheWall.bezier(0,0,
@@ -387,7 +386,7 @@ function poetsNarcissus(){
   for(let i = 0; i < 6; i++){
     iWasLookingAtTheWall.rotate(1.1);
     iWasLookingAtTheWall.fill('#'+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
-    iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].headlongPlungesOfEqualDistraction);
+    iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
     iWasLookingAtTheWall.strokeWeight(2);
     iWasLookingAtTheWall.beginShape();
     iWasLookingAtTheWall.curveVertex(0,0);
@@ -423,7 +422,7 @@ function poppy(){
   for(let sheLovesMe = 3; sheLovesMe < 8; sheLovesMe++){
     iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
     iWasLookingAtTheWall.push();
-    iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].headlongPlungesOfEqualDistraction);
+    iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
     iWasLookingAtTheWall.strokeWeight(3);
     iWasLookingAtTheWall.rotate(PI/2.5*sheLovesMe);
     iWasLookingAtTheWall.bezier(0,0,height/3,width/20,0,-width/3,0,0);
