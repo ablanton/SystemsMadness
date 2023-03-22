@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.1/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.1/addons/p5.sound.min.js"></script>
+    <style>html, body{margin: 0;padding: 0;} canvas{display: block;}</style>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+<script>
+
+let tileShader;
+let bodiesMovingShader;
+let tileGraphics;
+let flowerGraphics;
+let backgroundGraphics;
+
+function genTokenData(projectNum) {
+  let data = {};
+  let hash = "0x";
+  for (var i = 0; i < 64; i++) {
+    hash += Math.floor(Math.random() * 16).toString(16);
+  }
+  data.hash = hash;
+  data.tokenId = (projectNum * 1000000 + Math.floor(Math.random() * 1000)).toString();
+  return data;
+}
+let tokenData = genTokenData(123);
+
+///////////// tile shader //////////////////
+const tileVertex = `
+precision highp float;
+varying vec2 vPos;
+attribute vec3 aPosition;
+attribute vec2 aTexCoord;
+
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+
+varying vec2 vTexCoord;
+
+void main(void) {
+  vPos = (gl_Position = vec4(aPosition,1.0)).xy;
+  vec4 positionVec4 = vec4(aPosition, 1.0);
+  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;
+  vTexCoord = aTexCoord;
+}
+`;
+
+const tileFragment = `
+precision highp float;
+varying vec2 vTexCoord;
+
+uniform sampler2D flower;
+uniform float w;
+uniform float h;
+uniform vec2 u_resolution;
+
+uniform float tileAmount;
+uniform float tileOffset;
+
+const mat2 m = mat2( 0.80,  0.60, -0.60,  0.80 );
+
+float hash( float n ){
+    return fract(sin(n)*43758.5453);
+}
+
+float noise( in vec2 x ){
+    vec2 p = floor(x);
+    vec2 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*57.0;
+    return mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
+               mix( hash(n+ 57.0), hash(n+ 58.0),f.x),f.y);
+}
+
+float fbm( vec2 p ){
+    float f = 0.0;
+    f += 0.50000*noise( p ); p = m*p*2.02;
+    f += 0.25000*noise( p ); p = m*p*2.03;
+    f += 0.12500*noise( p ); p = m*p*2.01;
+    f += 0.06250*noise( p ); p = m*p*2.04;
+    f += 0.03125*noise( p );
+    return f/0.984375;
+}
+
+vec2 tile (vec2 _st, float _zoom) {
+    _st *= _zoom;
+    _st.x += step(1.,mod(_st.y,tileOffset))*.5;
+    return fract(_st);
+}
+
+void main() {
+    vec2 u_resolution = vec2(w,h);  
+    vec2 st = gl_FragCoord.xy/u_resolution.xy;
+    vec2 uv = vTexCoord;
+
+    uv = tile(uv,tileAmount);
+
+    vec2 q = gl_FragCoord.xy/u_resolution.xy*.5;
+    vec2 p = -1.0 + 0.650 * q;
+    p.x *= u_resolution.x/u_resolution.y;
+
+    //vignette 2
+    /////////////
+    float r2 = length( uv * 200.0);
+    vec3 col2 = vec3(0.0,0.0,0.0 );
+
+    float f2 = fbm( 20.0*-p );
+    col2 = mix(-col2, vec3(-0.6,0.6,0.6),f2);
+
+    f2 = smoothstep( .19, 0.92, r2 );
+    col2 = mix( col2, -vec3(0.0),f2+0.5);
+    //////////////
+
+    //vec4 flowerTile = texture2D(flower, fract(uv))+vec4(col2,0.10);
+    vec4 flowerTile = texture2D(flower, fract(uv));
+
+    gl_FragColor = flowerTile;
+}
+`;
+
+// /////////// movement shader //////////////
+
+const basicVertex = `
+precision highp float;
+varying vec2 vPos;
+attribute vec3 aPosition;
+attribute vec2 aTexCoord;
+
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+
+varying vec2 vTexCoord;
+
+void main(void) {
+  vPos = (gl_Position = vec4(aPosition,1.0)).xy;
+  vec4 positionVec4 = vec4(aPosition, 1.0);
+  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;
+  vTexCoord = aTexCoord;
+}
+`;
+
+const basicFragment = `
+precision highp float;
+varying vec2 vTexCoord;
+uniform sampler2D tiledFlower;
+//uniform sampler2D flower;
+uniform sampler2D backgroundNoiz;
+
+varying vec2 vPos;
+uniform float w;
+uniform float h;
+
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+uniform float u_time;
+
+
+uniform float noiseSeed;
+uniform float noiseAmount;
+
+uniform float tileAmount;
+uniform float tileOffset;
+
+const mat2 m = mat2( 0.80,  0.60, -0.60,  0.80 );
+
+float hash( float n ){
+    return fract(sin(n)*43758.5453);
+}
+
+float noise( in vec2 x ){
+    vec2 p = floor(x);
+    vec2 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*57.0;
+    return mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
+               mix( hash(n+ 57.0), hash(n+ 58.0),f.x),f.y);
+}
+
+float fbm( vec2 p ){
+    float f = 0.0;
+    f += 0.50000*noise( p ); p = m*p*2.02;
+    f += 0.25000*noise( p ); p = m*p*2.03;
+    f += 0.12500*noise( p ); p = m*p*2.01;
+    f += 0.06250*noise( p ); p = m*p*2.04;
+    f += 0.03125*noise( p );
+    return f/0.984375;
+}
+
+float noisey(vec2 p) {
+    return fract(sin(dot(p.xy, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+vec2 radialNoise(vec2 texCoord, float frequency, float amplitude, float time) {
+    vec2 center = vec2(0.5, 0.5); // set the center of the radial noise pattern
+    vec2 offset = texCoord - center;
+    float distance = length(offset); // calculate the distance from the center
+    float noiseValue = noise(vec2(distance * frequency + time, time)); // generate Simplex noise at the given frequency and time
+    vec2 noiseVector = vec2(cos(noiseValue), sin(noiseValue)); // convert noise value to a vector
+    return noiseVector * amplitude * (1.0 - distance); // apply amplitude and distance attenuation
+}
+
+vec2 tile (vec2 _st, float _zoom) {
+    _st *= _zoom;
+    _st.x += step(1.,mod(_st.y,tileOffset))*.5;
+    return fract(_st);
+}
+
+vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+float snoise(vec2 v) {
+    const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
+                        0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)
+                        -0.577350269189626,  // -1.0 + 2.0 * C.x
+                        0.024390243902439); // 1.0 / 41.0
+    vec2 i  = floor(v + dot(v, C.yy) );
+    vec2 x0 = v -   i + dot(i, C.xx);
+    vec2 i1;
+    i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+    vec4 x12 = x0.xyxy + C.xxzz;
+    x12.xy -= i1;
+    i = mod289(i); // Avoid truncation effects in permutation
+    vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+        + i.x + vec3(0.0, i1.x, 1.0 ));
+
+    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+    m = m*m ;
+    m = m*m ;
+    vec3 x = 2.0 * fract(p * C.www) - 1.0;
+    vec3 h = abs(x) - 0.5;
+    vec3 ox = floor(x + 0.5);
+    vec3 a0 = x - ox;
+    m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+    vec3 g;
+    g.x  = a0.x  * x0.x  + h.x  * x0.y;
+    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+    return 130.0 * dot(m, g);
+}
+
+void main() {
+    vec2 u_resolution = vec2(w,h);  
+    vec2 st = gl_FragCoord.xy/u_resolution.xy;
+    vec2 uv = vTexCoord;
+    vec2 uv_2 = vTexCoord;
+
+    uv = tile(uv,tileAmount);
+
+    vec2 q = gl_FragCoord.xy/u_resolution.xy*.5;
+    vec2 p = -1.0 + 0.650 * q;
+    p.x *= u_resolution.x/u_resolution.y;
+
+    vec2 pos = vec2(st.x*0.7 + (u_time*0.18), st.y*0.17 + (u_time*.18));
+    vec3 dist = vec3(snoise(pos)*u_mouse.y);
+    vec2 distorter = vec2(dist.rg) * vec2(0.01);
+
+    //vignette
+    ///////////////
+    float r = length( p * 0.35);
+    vec3 col = vec3(0.64,0.25,0.0 );
+
+    float f = fbm( 7.0*p );
+    col = mix(col, vec3(1.0,1.0,1.0),f);
+
+    f = smoothstep( .19, 0.92, r );
+    col = mix( col, vec3(0.0), f+1.0 );
+    ///////////////
+
+    //vignette 2
+    /////////////
+    float r2 = length( uv * 200.0);
+    vec3 col2 = vec3(0.0,0.0,0.0 );
+
+    float f2 = fbm( 20.0*-p );
+    col2 = mix(-col2, vec3(-0.6,0.6,0.6),f2);
+
+    f2 = smoothstep( .19, 0.92, r2 );
+    col2 = mix( col2, -vec3(0.0),f2+0.5);
+    //////////////
+
+    //vec4 flowerTile = texture2D(tiledFlower, fract(uv))+vec4(col2,0.10);
+    vec4 distortedFlower = texture2D(tiledFlower, fract(uv_2)+distorter)+vec4(col2,0.10);
+
+    //vec4 flowerTileFull = texture2D(tiledFlower, fract(uv_2)+distorter) + flowerTile;
+    //vec4 distortedFlower = flowerTile*vec4(fract(uv_2)+distorter,1.0,1.0);
+    //vec4 distortedFlower = flowerTile;
+
+
+    vec4 distortedBackground = texture2D(backgroundNoiz, fract(uv_2)+distorter)+vec4(col,0.10)+distortedFlower;
+    //vec4 flowerBackground = distortedFlower * distortedFlower.a + distortedBackground * (1.0 - distortedFlower.a);
+    vec4 flowerBackground = distortedFlower * distortedFlower.a + distortedBackground * (1.0 - distortedFlower.a);
+
+    //  gl_FragColor = vec4(col,1.0)+flowerBackground;
+    //gl_FragColor = texture2D(tiledFlower, fract(uv));
+      gl_FragColor = texture2D(backgroundNoiz, fract(uv_2))+vec4(col,0.10)+distortedFlower;
+    //  gl_FragColor = flowerBackground;
+    //  gl_FragColor = distortedFlower * distortedFlower.a - vec4(col,1.0);
+    //  gl_FragColor = flowerTile;
+     // gl_FragColor = flowerTileFull;
+    //  gl_FragColor = distortedFlower;
+    //  gl_FragColor = flowerBackground;
+    //  gl_FragColor = vec4(uv,1.0,1.0);
+    //  gl_FragColor = vec4(uv_2,1.0,1.0);
+    //  gl_FragColor = distortedBackground;
+    //  gl_FragColor = vec4(distorter,1.0,1.0);
+}
+`;
+
+let up = 0, up_left = 1,left = 2,down_left = 3,down = 4,down_right = 5,right = 6,up_right = 7;
+let imConflictedButSittingWithMyself;
+let iWasMoving = 2,throughSpace = 5,backAndFourth,upAndDownlet;
+
+let petal_pick = [{color:['e5cd00','867800','f35a1b','f38533','4E3620','a99700','4E3620'], background:'e03500', noiz_r1:240, noiz_r2:255, noiz_g1:200, noiz_g2:220, noiz_b1:120, noiz_b2:140, alpha:.04, stemStroke:'837c51', petalStroke:'fff4d8',center:'fff4d8', centerStroke:'fff4d8', backgroundSeed:0, tileAmount:3.0, tileOffset:2.0, hallucinations:0.0}];
+
+let aDividedMind = 6,tryingToCombine;
+let myChoice;
+let myFlower;
+let aQuestion;
+let myMouse = 0.3;
+
+function setup() {
+  console.log('yellow wallpaper v0.13')
+  pixelDensity(3.0);
+  createCanvas(windowWidth, windowHeight,WEBGL);
+  aQuestion = new Random();
+  myChoice = 0;
+  flowerGraphics = createGraphics(windowWidth,windowHeight);
+  tileGraphics = createGraphics(windowWidth,windowHeight,WEBGL);
+  tileShader = createShader(tileVertex,tileFragment);
+  backgroundGraphics = createGraphics(windowWidth,windowHeight);
+  bodiesMovingShader = createShader(basicVertex, basicFragment);
+  bgNoise();
+  aFlowerInTheMoonlight();
+}
+function draw() {
+  if (/\bHeadlessChrome/.test(navigator.userAgent)) { 
+    // we are in the headless context
+    myMouse = petal_pick[myChoice].hallucinations;
+  } else{
+    myMouse = (mouseX-windowWidth/2)/9;
+  }
+  
+  tileShader.setUniform("u_resolution", [width, height]);
+  tileShader.setUniform('w', windowWidth/2);
+  tileShader.setUniform('h', windowHeight/2);
+  tileShader.setUniform('flower', flowerGraphics);
+  tileShader.setUniform('tileAmount', petal_pick[myChoice].tileAmount);
+  tileShader.setUniform('tileOffset', petal_pick[myChoice].tileOffset);
+
+  bodiesMovingShader.setUniform("u_resolution", [width, height]);
+  bodiesMovingShader.setUniform("u_time", millis() / 10000.0);
+  bodiesMovingShader.setUniform("u_mouse", [mouseX, myMouse]);
+  bodiesMovingShader.setUniform('w', windowWidth/2);
+  bodiesMovingShader.setUniform('h', windowHeight/2);
+  bodiesMovingShader.setUniform('tiledFlower', tileGraphics);
+  bodiesMovingShader.setUniform('backgroundNoiz', backgroundGraphics);
+  bodiesMovingShader.setUniform('noiseSeed', frameCount/100);
+  bodiesMovingShader.setUniform('noiseAmount', 0.05);
+  bodiesMovingShader.setUniform('tileAmount', petal_pick[myChoice].tileAmount);
+  bodiesMovingShader.setUniform('tileOffset', petal_pick[myChoice].tileOffset);
+
+  tileGraphics.shader(tileShader);
+  tileGraphics.plane(width, height);
+
+  shader(tileShader);
+  plane(width/2, height/2);
+
+  shader(bodiesMovingShader);
+  noStroke();
+  plane(width, height);
+
+  image(tileGraphics, 50, 50);
+}
+function aFlowerInTheMoonlight(){
+      chrysanthemum();
+}
+function chrysanthemum(){
+  console.log('chrysanthemum');
+  changingPetals = 0;  
+  //stem
+  push();
+  flowerGraphics.translate(width/2,height/2)
+  flowerGraphics.stroke("#"+petal_pick[myChoice].stemStroke);
+  flowerGraphics.noFill();
+  flowerGraphics.bezier(0,0,30,50,10,height/4,30,height/3);
+  pop();
+  //petals
+  for(let i = 3; i < 30; i++){
+      flowerGraphics.fill("#"+petal_pick[myChoice].color[changingPetals]);
+      push();
+      flowerGraphics.rotate(2.3*i);
+      flowerGraphics.strokeWeight(3);
+      flowerGraphics.stroke("#"+petal_pick[myChoice].petalStroke);
+      flowerGraphics.bezier(0,-windowHeight/100,windowHeight/6,windowHeight/11,0,windowHeight/1.7,0,0);
+      pop();
+      changingPetals++;
+      if(changingPetals == 6){changingPetals = 0}
+  }
+  //flower center
+  push();
+  flowerGraphics.stroke("#"+petal_pick[myChoice].petalStroke);
+  flowerGraphics.fill("#"+petal_pick[myChoice].center);
+  flowerGraphics.ellipse(0,0,windowHeight/20);
+  pop();
+}
+
+function bgNoise(){
+  backAndFourth = width / 2;
+  upAndDown = height / 2;
+  backgroundGraphics.background("#"+petal_pick[myChoice].background);
+  for (let j = 0; j < 200; j++){
+    backgroundGraphics.noStroke();
+    backgroundGraphics.fill('rgba('+int(random(petal_pick[myChoice].noiz_r1,petal_pick[myChoice].noiz_r2))+','+int(random(petal_pick[myChoice].noiz_g1,petal_pick[myChoice].noiz_g2))+','+int(random(petal_pick[myChoice].noiz_b1,petal_pick[myChoice].noiz_b2))+', '+petal_pick[myChoice].alpha+')');
+    for (let i = 0; i <= width; i++) {
+        imConflictedButSittingWithMyself = int(random(0, 8));
+      if (imConflictedButSittingWithMyself == up) {upAndDown -= iWasMoving;
+      } else if (imConflictedButSittingWithMyself == up_left) {backAndFourth += iWasMoving;upAndDown -= iWasMoving;
+      } else if (imConflictedButSittingWithMyself == left) {backAndFourth += iWasMoving;
+      } else if (imConflictedButSittingWithMyself == down_left) {backAndFourth += iWasMoving;upAndDown += iWasMoving;
+      } else if (imConflictedButSittingWithMyself == down) {upAndDown += iWasMoving;
+      } else if (imConflictedButSittingWithMyself == down_right) {backAndFourth -= iWasMoving;upAndDown += iWasMoving;
+      } else if (imConflictedButSittingWithMyself == right) {backAndFourth -= iWasMoving;
+      } else if (imConflictedButSittingWithMyself == up_right) {backAndFourth -= iWasMoving;upAndDown -= iWasMoving;
+      }
+      if (backAndFourth > width) backAndFourth = 0;
+      if (backAndFourth < 0) backAndFourth = width;
+      if (upAndDown < 0) upAndDown = height;
+      if (upAndDown > height) upAndDown = 0;
+      backgroundGraphics.ellipse(backAndFourth + iWasMoving / 2, upAndDown + iWasMoving / 2, throughSpace, throughSpace);
+    }
+  }
+}
+function windowResized() {
+  if (/\bHeadlessChrome/.test(navigator.userAgent)) { 
+    // we are in the headless context
+    myMouse = 2.0;
+    resizeCanvas(2048, 2048);
+    bodiesMovingShader.setUniform("u_mouse", [0.0, 0.0]);
+    noStroke();
+    plane(2048, 2048);
+  } else{
+    resizeCanvas(windowWidth, windowHeight);
+    bodiesMovingShader.setUniform("u_mouse", [0.0, 0.0]);
+    setup();
+  }
+}
+
+class Random {
+    constructor() {
+      this.useA = false;
+      let sfc32 = function (uint128Hex) {
+        let a = parseInt(uint128Hex.substr(0, 8), 16);
+        let b = parseInt(uint128Hex.substr(8, 8), 16);
+        let c = parseInt(uint128Hex.substr(16, 8), 16);
+        let d = parseInt(uint128Hex.substr(24, 8), 16);
+        return function () {
+          a |= 0; b |= 0; c |= 0; d |= 0;
+          let t = (((a + b) | 0) + d) | 0;
+          d = (d + 1) | 0;
+          a = b ^ (b >>> 9);
+          b = (c + (c << 3)) | 0;
+          c = (c << 21) | (c >>> 11);
+          c = (c + t) | 0;
+          return (t >>> 0) / 4294967296;
+        };
+      };
+      // seed prngA with first half of tokenData.hash
+      this.prngA = new sfc32(tokenData.hash.substr(2, 32));
+      // seed prngB with second half of tokenData.hash
+      this.prngB = new sfc32(tokenData.hash.substr(34, 32));
+      for (let i = 0; i < 1e6; i += 2) {
+        this.prngA();
+        this.prngB();
+      }
+    }
+    // random number between 0 (inclusive) and 1 (exclusive)
+    random_dec() {
+      this.useA = !this.useA;
+      return this.useA ? this.prngA() : this.prngB();
+    }
+    // random number between a (inclusive) and b (exclusive)
+    random_num(a, b) {
+      return a + (b - a) * this.random_dec();
+    }
+    // random integer between a (inclusive) and b (inclusive)
+    // requires a < b for proper probability distribution
+    random_int(a, b) {
+      return Math.floor(this.random_num(a, b + 1));
+    }
+    // random boolean with p as percent liklihood of true
+    random_bool(p) {
+      return this.random_dec() < p;
+    }
+    // random value in an array of items
+    random_choice(list) {
+      return list[this.random_int(0, list.length - 1)];
+    }
+  }
+    </script>
+  </body>
+</html>

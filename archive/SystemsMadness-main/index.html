@@ -1,0 +1,305 @@
+<html>
+  <head>
+    <style>
+      body {
+        background-color: #fbfbfb;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      header {
+        background-color: #f8f8f8;
+        height: 90px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: left;
+        padding:40px;
+      }
+      ProjectLink {
+        position:absolute;
+        top:20px;
+        right:50px;
+      }
+      h5 {
+        font-weight: normal;
+        color:#909090;
+      }
+      header>div {
+        flex: 1 0 50%;
+      }
+
+      header>div:first-child {
+        flex: 0 1 100%;
+      }
+      .content {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .column {
+        flex-basis: 100%;
+        padding: 40px;
+        box-sizing: border-box;
+      }
+      .column-top {
+        flex-basis: 100%;
+        padding: 40px;
+        box-sizing: border-box;
+      }
+
+      .column-top-left {
+        flex-basis: 100%;
+        padding: 40px;
+        box-sizing: border-box;
+      }
+
+      .column-top-right {
+        flex-basis: 100%;
+        padding: 40px;
+        box-sizing: border-box;
+      }
+
+        @media only screen and (min-width: 600px) {
+        .column {
+          flex-basis: calc(50% - 20px);
+        }
+
+        .column-top {
+          flex-basis: calc(50%);
+          padding-left:60px;
+          padding-top:60px;
+        }
+
+        .column-top-left {
+          flex-basis: calc(50%);
+          padding-left:10%;
+          padding-top:8%;
+        }
+
+        .column-top-right {
+          flex-basis: calc(50%);
+          padding-left:60px;
+          padding-top:60px;
+        }
+        .image-grid img {
+          width: 19%;
+          padding: 0px;
+          margin:0px;
+          border: 0px;
+        }
+      }
+      .image-grid {
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 800px;
+        margin:auto;
+        padding-top: 5%;
+      }
+      .image-grid a {
+        flex-basis: 20%;
+      }
+      .image-grid{
+        width:100%;
+        display:block;
+      }
+      @media only screen and (max-width: 600px) {
+        .image-grid a {
+          flex-basis:40%;
+        }
+      }
+
+      @media only screen and (min-width: 600px) {
+        .column {
+          flex-basis: calc(50% - 20px);
+        }
+        .image-grid2 img {
+          width: 70%;
+          padding-bottom: 50px;
+          margin:0px;
+          border: 0px;
+        }
+      }
+      .image-grid2 {
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 800px;
+        margin:auto;
+        padding-top: 15%;
+        padding-left:30%;
+      }
+      .image-grid2 a {
+        flex-basis: 50%;
+      }
+      .image-grid2{
+        width:100%;
+        display:block;
+      }
+      @media only screen and (max-width: 600px) {
+        .image-grid2 a {
+          flex-basis:40%;
+        }
+      }
+      .iframe-container {
+        position: relative;
+        width:70%;
+        margin: 0 auto;
+        padding-bottom: 70%; /* 16:9 aspect ratio */
+      }      
+      .iframe-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border:none;
+        padding-top:10%;
+      }
+      .iframe-container-top {
+        position: relative;
+        width:100%;
+        margin: 0 auto;
+        padding-bottom: 100%; /* 16:9 aspect ratio */
+      }
+      .iframe-container-top iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border:none;
+        padding-top:10%;
+      }
+
+    </style>
+  </head>
+  <body>
+    <a href="#"><ProjectLink><h5>Art Blocks Project Home</h5></ProjectLink></a>
+    <header>
+      <div><h1>/// SYSTEMS MADNESS /// YELLOW WALLPAPER ///</h1></div>
+      <div><h5>Claudia Hart and Andrew Blanton 2023</h5></div>
+      <br>
+    </header>
+
+    <div class="content">
+      <div class="column-top-left">
+          <p>This work is inspired by a short story by Charlotte Perkins Gilman written in 1892, The Yellow Wallpaper.  The narrator of her story is another imaginative woman, a writer of short fiction. Her husband is John, a rational man and a very scientific medical doctor. John feels that his wife is too agitated, so he enforces upon her a treatment contrived for unusual women in the age of Freud: complete rest, no guests, no visitors. Retired to the country by her doting husband, our narrator takes her rest in a room hung with yellow wallpaper, staring alone at the walls for three months. By the end of this cure, she has completely lost her mind, hallucinating a mad woman imprisoned behind the yellow patterns. My interpretation of the Gilman story is called Systems Madness, a coded system translating her yellow wallpaper into P5js. To accomplish this I invited Andrew Blanton, a composer and accomplished programmer to collaborate.</p>
+          <p>To decode the semantics of crazy wallpaper, I decided to use Dall-e, the open-access AI that creates images from text. Since I was working from literature, I could harness Dall-e to translate literary language into a library of visual tropes. The Dall-e database consists of reproductions of canonical images culled from the history of mainstream art history, in other words, of western painting, photography, and design. Dall-e, in the end, is a cultural archive, simulating cultural values, cliches and assumptions. It is at its core, a semiotics engine.  Dall-e is therefore the perfect tool for deconstructing crazy wallpaper. I realized that Dalle-e because it sits on a specific cultural database, hooks into its unconscious, providing the road to travel in pursuit of the Yellow Wallpaper algorithm - the mathematics behind a story that is a literary icon of both Romantic and feminist fiction.</p>
+      </div>
+      <div class="column-top-right">
+        <div class="iframe-container-top">
+          <iframe src="liveWorks/40.html"></iframe>
+        </div>
+      </div>
+      </div>
+
+    <div class="iframe-container">
+      <iframe src="liveWorks/0.html"></iframe>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <div class="content">
+      <div class="column">
+        <div class="image-grid2">
+          <img src="images/1.png" alt="dalle image 1">
+          <img src="images/6.png" alt="dalle image 2">
+        </div>
+      </div>
+      <div class="column">
+        <div class="column">
+          <p>I typed descriptors into Dall-e, borrowing language from the short story, also intermixed with other related literary, cultural, and art references from the same period: “Hallucinatory old floral wallpaper like a watercolor Rorschach test created by Victor Hugo after writing The Hunchback of Notre Dame, then seeing an exhibition of paintings by Odilon Redon,” for example.  And also: “Tiny flowers in patterned wallpaper, water-colored, faded and painted by a paranoid schizophrenic woman seeing visions of dancing macabre figures.”  I tried many versions, then at a certain point, the Dall-e wallpaper designs started repeating themselves. Once they did, I knew I had cracked the code. It was time for Andrew to step in.</p>
+          <p>To script, Andrew countered my Dall-e semiotics engine with a post-processing library that he translated into a custom shader that bends and distorts five poisonous flowers (chrysanthemum, hydrangea, poet's narcissus, poppy, and foxglove). Andrew and I then formally deconstructed the pattern language of Dall-e romantic wallpapers with as much precision as we could muster. “Crazy” patterns consist of warm, off-primary colors, noises, gradients, transparencies, blurrings, layerings imitating watermarks, and different fractal formations repeated irregularly. Andrew then translated the Dall-e wallpapers into code. He created a system to reconstruct madness that is also responsive to human touch - a slight wiggle to a handheld mouse resets it to a different time and place. To expand on the idea, Andrew fed the code into Chat-GPT from OpenAI to replace all of the code variable names with poetic phrases from the Yellow Wallpaper story. As a result, the code itself has been transformed into poetic fiction.</p>
+          <p>The Yellow Wallpaper inspired rational mathematics, yet suggested irrational hallucinations. Together, Andrew and I framed a question - what happens when reason meets unreason? The response: the all too human desire to create order out of the chaos of this world; and identically - the truth - that too much order can actually drive you mad! The production of this work also drove ME a bit mad. It was a stretch.  For the past 35 years, my practice has been intermedia and installation based. I translated my photo, video, and painting practice into virtual realities over twenty years ago, using physical objects produced by computer-driven production machines, projections, and mapped 3D animations, followed by AR and VR as they were invented.  What Artblocks and Andrew have taught me, is how to modularize a system from the ground up. This means building it organically from concept to code, from code to image, and then from image to form. With these building blocks, I can create a world that expresses meaning as a story, but also as a data dynamic stream that can translate once again into an image - the most potent form of emotional expression.  This is an incredible breakthrough for me, allowing me to use all of the tools and skills I’ve honed since I was in my twenties - having arrived at the grand old age of almost 68!  Thank you amazing team and community: <3.</p>
+      </div>
+      </div>
+    </div>    
+    <div class="image-grid">
+      <!-- images 0.avif to 4.avif -->
+      <a href="https://www.madness.systems/liveWorks/0.html"><img src="images/0.avif" alt="Image 0"></a>
+      <a href="https://www.madness.systems/liveWorks/1.html"><img src="images/1.avif" alt="Image 1"></a>
+      <a href="https://www.madness.systems/liveWorks/2.html"><img src="images/2.avif" alt="Image 2"></a>
+      <a href="https://www.madness.systems/liveWorks/3.html"><img src="images/3.avif" alt="Image 3"></a>
+      <a href="https://www.madness.systems/liveWorks/4.html"><img src="images/4.avif" alt="Image 4"></a>
+
+      <!-- images 5.avif to 9.avif -->
+      <a href="https://www.madness.systems/liveWorks/5.html"><img src="images/5.avif" alt="Image 5"></a>
+      <a href="https://www.madness.systems/liveWorks/6.html"><img src="images/6.avif" alt="Image 6"></a>
+      <a href="https://www.madness.systems/liveWorks/7.html"><img src="images/7.avif" alt="Image 7"></a>
+      <a href="https://www.madness.systems/liveWorks/8.html"><img src="images/8.avif" alt="Image 8"></a>
+      <a href="https://www.madness.systems/liveWorks/9.html"><img src="images/9.avif" alt="Image 9"></a>
+
+      <!-- images 10.avif to 14.avif -->
+      <a href="https://www.madness.systems/liveWorks/10.html"><img src="images/10.avif" alt="Image 10"></a>
+      <a href="https://www.madness.systems/liveWorks/11.html"><img src="images/11.avif" alt="Image 11"></a>
+      <a href="https://www.madness.systems/liveWorks/12.html"><img src="images/12.avif" alt="Image 12"></a>
+      <a href="https://www.madness.systems/liveWorks/13.html"><img src="images/13.avif" alt="Image 13"></a>
+      <a href="https://www.madness.systems/liveWorks/14.html"><img src="images/14.avif" alt="Image 14"></a>
+
+      <!-- images 15.avif to 19.avif -->
+      <a href="https://www.madness.systems/liveWorks/15.html"><img src="images/15.avif" alt="Image 15"></a>
+      <a href="https://www.madness.systems/liveWorks/16.html"><img src="images/16.avif" alt="Image 16"></a>
+      <a href="https://www.madness.systems/liveWorks/17.html"><img src="images/17.avif" alt="Image 17"></a>
+      <a href="https://www.madness.systems/liveWorks/18.html"><img src="images/18.avif" alt="Image 18"></a>
+      <a href="https://www.madness.systems/liveWorks/19.html"><img src="images/19.avif" alt="Image 19"></a>
+
+      <!-- images 20.avif to 24.avif -->
+      <a href="https://www.madness.systems/liveWorks/20.html"><img src="images/20.avif" alt="Image 20"></a>
+      <a href="https://www.madness.systems/liveWorks/21.html"><img src="images/21.avif" alt="Image 21"></a>
+      <a href="https://www.madness.systems/liveWorks/22.html"><img src="images/22.avif" alt="Image 22"></a>
+      <a href="https://www.madness.systems/liveWorks/23.html"><img src="images/23.avif" alt="Image 23"></a>
+      <a href="https://www.madness.systems/liveWorks/24.html"><img src="images/24.avif" alt="Image 24"></a>
+
+      <!-- images 25.avif to 29.avif -->
+      <a href="https://www.madness.systems/liveWorks/25.html"><img src="images/25.avif" alt="Image 25"></a>
+      <a href="https://www.madness.systems/liveWorks/26.html"><img src="images/26.avif" alt="Image 26"></a>
+      <a href="https://www.madness.systems/liveWorks/27.html"><img src="images/27.avif" alt="Image 27"></a>
+      <a href="https://www.madness.systems/liveWorks/28.html"><img src="images/28.avif" alt="Image 28"></a>
+      <a href="https://www.madness.systems/liveWorks/29.html"><img src="images/29.avif" alt="Image 29"></a>
+
+      <!-- images 30.avif to 34.avif -->
+      <a href="https://www.madness.systems/liveWorks/30.html"><img src="images/30.avif" alt="Image 30"></a>
+      <a href="https://www.madness.systems/liveWorks/31.html"><img src="images/31.avif" alt="Image 31"></a>
+      <a href="https://www.madness.systems/liveWorks/32.html"><img src="images/32.avif" alt="Image 32"></a>
+      <a href="https://www.madness.systems/liveWorks/33.html"><img src="images/33.avif" alt="Image 33"></a>
+      <a href="https://www.madness.systems/liveWorks/34.html"><img src="images/34.avif" alt="Image 34"></a>
+
+      <!-- images 35.avif to 39.avif -->
+      <a href="https://www.madness.systems/liveWorks/35.html"><img src="images/35.avif" alt="Image 35"></a>
+      <a href="https://www.madness.systems/liveWorks/36.html"><img src="images/36.avif" alt="Image 36"></a>
+      <a href="https://www.madness.systems/liveWorks/37.html"><img src="images/37.avif" alt="Image 37"></a>
+      <a href="https://www.madness.systems/liveWorks/38.html"><img src="images/38.avif" alt="Image 38"></a>
+      <a href="https://www.madness.systems/liveWorks/39.html"><img src="images/39.avif" alt="Image 39"></a>
+
+      <!-- images 40.avif to 44.avif -->
+      <a href="https://www.madness.systems/liveWorks/40.html"><img src="images/40.avif" alt="Image 40"></a>
+      <a href="https://www.madness.systems/liveWorks/41.html"><img src="images/41.avif" alt="Image 41"></a>
+      <a href="https://www.madness.systems/liveWorks/42.html"><img src="images/42.avif" alt="Image 42"></a>
+      <a href="https://www.madness.systems/liveWorks/43.html"><img src="images/43.avif" alt="Image 43"></a>
+      <a href="https://www.madness.systems/liveWorks/44.html"><img src="images/44.avif" alt="Image 44"></a>
+
+      <!-- images 45.avif to 49.avif -->
+      <a href="https://www.madness.systems/liveWorks/45.html"><img src="images/45.avif" alt="Image 45"></a>
+      <a href="https://www.madness.systems/liveWorks/46.html"><img src="images/46.avif" alt="Image 46"></a>
+      <a href="https://www.madness.systems/liveWorks/47.html"><img src="images/47.avif" alt="Image 47"></a>
+      <a href="https://www.madness.systems/liveWorks/48.html"><img src="images/48.avif" alt="Image 48"></a>
+      <a href="https://www.madness.systems/liveWorks/49.html"><img src="images/49.avif" alt="Image 49"></a>
+      <br>
+      <br>    
+      <br>
+      <br>
+    </div>
+    <div class="content">
+    <div class="column">
+      <p><img width="100%" src="images/code.png" alt="code"></p>
+    </div>
+    <div class="column">
+      <p><b>Claudia Hart</b> emerged as part of a generation of 90s intermedia artists examining issues of identity and representation.  Since the late 90s when she began working with 3D animation, Hart embraced these same concepts, but now focusing on the impact of computing  and simulations technologies.  She was an early adopter of virtual imaging, using 3D animation to make media installations and projections, and later as they were invented, other forms of VR, AR and objects produced by computer-driven production machines. At the <a href="https://saic.edu">School of the Art Institute of Chicago</a>, where she is a Professor, she developed a pedagogic program based on her practice - Experimental 3D  - the first dedicated solely to teaching simulations technologies in an art-school context.</p>
+      <p>Hart’s works are widely exhibited and collected by galleries and museums including the collections of the Whitney Museum of American Art, the Museum of Modern Art, the National Gallery, Hamburger Bahnhof, Berlin, and the Albertina Museum, Vienna, The Museum of Contemporary Art San Diego, The Vera List Center Collection,The Borusan Contemporary Collection, The Carl & Marilynn Thoma Foundation Collection, the Anne and Michael Spalter Digital Art Collection, The Goetz Collection,The New York Public Library, the Addison Gallery of American Arts, Andover, MA, Richard and Ellen Sandor Family Collection, and many other private collections . Her work has been exhibited at the New Museum, produced at the Eyebeam Center for Art + Technology, where she was an honorary fellow in 2013-14, and at the Center for New Music and Audio Technology, UC California, Berkeley where she is currently a fellow.</p>
+      <p><b>Andrew Blanton</b> is an Associate Professor in the <a href="https://cadre.sjsu.edu">CADRE Media Labs</a> at San Jose State University and a PhD student in Music Composition at the <a href="https://www.berkeley.edu">University of California, Berkeley</a>. His work has been performed and presented around the world in venues such as Google Cultural Lab in Paris, The University of Brasilia, The City University of Hong Kong, STEIM Amsterdam, and The American University Ciaro among many others. His current work focuses on the emergent potential between cross-disciplinary arts and technology in the context of Music Composition, New Media Art, and building sound + visual environments through software development. Andrew has advanced expertise in percussion, 3D environments/graphics programming, creative software development, and developing projects in the confluence of art and science. http://andrewblanton.com</p>    </div>
+    </div>
+  </body>
+</html>

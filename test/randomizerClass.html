@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.1/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.1/addons/p5.sound.min.js"></script>
+    <style>html, body{margin: 0;padding: 0;} canvas{display: block;}</style>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+<script>
+
+let bodiesStartedToEmerge;
+let flowerGraphics;
+let theViewFromThisRoom;
+
+function genTokenData(projectNum) {
+  let data = {};
+  let hash = "0x";
+  for (var i = 0; i < 64; i++) {
+    hash += Math.floor(Math.random() * 16).toString(16);
+  }
+  data.hash = hash;
+  data.tokenId = (projectNum * 1000000 + Math.floor(Math.random() * 1000)).toString();
+  return data;
+}
+let tokenData = genTokenData(123);
+
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+// ______________ ______________                                                          
+// \__    ___/   |   \_   _____/                                                          
+//   |    | /    ~    \    __)_                                                           
+//   |    | \    Y    /        \                                                          
+//   |____|  \___|_  /_______  /                                                          
+//                 \/        \/                                                           
+// _____.___.___________.____    .____    ________  __      __                            
+// \__  |   |\_   _____/|    |   |    |   \_____  \/  \    /  \                           
+//  /   |   | |    __)_ |    |   |    |    /   |   \   \/\/   /                           
+//  \____   | |        \|    |___|    |___/    |    \        /                            
+//  / ______|/_______  /|_______ \_______ \_______  /\__/\  /                             
+//  \/               \/         \/       \/       \/      \/                              
+//  __      __  _____  .____    .____   __________  _____ _______________________________ 
+// /  \    /  \/  _  \ |    |   |    |  \______   \/  _  \\______   \_   _____/\______   \
+// \   \/\/   /  /_\  \|    |   |    |   |     ___/  /_\  \|     ___/|    __)_  |       _/
+//  \        /    |    \    |___|    |___|    |  /    |    \    |    |        \ |    |   \
+//   \__/\  /\____|__  /_______ \_______ \____|  \____|__  /____|   /_______  / |____|_  /
+//        \/         \/        \/       \/               \/                 \/         \/ 
+//
+//  ____________                                                                          
+// /_____/_____/                                                                          
+//                                                                                   
+//   ______________.___. _______________________________   _____    _________             
+//  /   _____/\__  |   |/   _____/\__    ___/\_   _____/  /     \  /   _____/             
+//  \_____  \  /   |   |\_____  \   |    |    |    __)_  /  \ /  \ \_____  \              
+//  /        \ \____   |/        \  |    |    |        \/    Y    \/        \             
+// /_______  / / ______/_______  /  |____|   /_______  /\____|__  /_______  /             
+//         \/  \/              \/                    \/         \/        \/              
+//    _____      _____  ________    _______  ___________ _________ _________              
+//   /     \    /  _  \ \______ \   \      \ \_   _____//   _____//   _____/              
+//  /  \ /  \  /  /_\  \ |    |  \  /   |   \ |    __)_ \_____  \ \_____  \               
+// /    Y    \/    |    \|    `   \/    |    \|        \/        \/        \              
+// \____|__  /\____|__  /_______  /\____|__  /_______  /_______  /_______  /              
+//         \/         \/        \/         \/        \/        \/        \/               
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+
+// 
+// åπ∆®£w °ı• ß|ªπ†°n and Claudia Hart 2023
+//
+
+const movementFromTheirFlesh = `
+precision highp float;
+varying vec2 vPos;
+attribute vec3 aPosition;
+attribute vec2 aTexCoord;
+
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+
+varying vec2 vTexCoord;
+
+void main(void) {
+  vPos = (gl_Position = vec4(aPosition,1.0)).xy;
+  vec4 positionVec4 = vec4(aPosition, 1.0);
+  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;
+  vTexCoord = aTexCoord;
+}
+`;
+const movementFromTheirSkin = `
+precision highp float;
+varying vec2 vTexCoord;
+uniform sampler2D theWall;
+uniform sampler2D theFigureInTheWall;
+
+varying vec2 vPos;
+uniform float w;
+uniform float h;
+
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+uniform float u_time;
+
+
+uniform float noiseSeed;
+uniform float noiseAmount;
+
+uniform float lookingBackAtMe;
+uniform float lookingBackAtHerself;
+
+const mat2 m = mat2( 0.80,  0.60, -0.60,  0.80 );
+
+float hash( float n ){
+    return fract(sin(n)*43758.5453);
+}
+
+float noise( in vec2 x ){
+    vec2 p = floor(x);
+    vec2 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*57.0;
+    return mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
+               mix( hash(n+ 57.0), hash(n+ 58.0),f.x),f.y);
+}
+
+float fbm( vec2 p ){
+    float f = 0.0;
+    f += 0.50000*noise( p ); p = m*p*2.02;
+    f += 0.25000*noise( p ); p = m*p*2.03;
+    f += 0.12500*noise( p ); p = m*p*2.01;
+    f += 0.06250*noise( p ); p = m*p*2.04;
+    f += 0.03125*noise( p );
+    return f/0.984375;
+}
+
+float noisey(vec2 p) {
+    return fract(sin(dot(p.xy, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+vec2 radialNoise(vec2 texCoord, float frequency, float amplitude, float time) {
+    vec2 center = vec2(0.5, 0.5); // set the center of the radial noise pattern
+    vec2 offset = texCoord - center;
+    float distance = length(offset); // calculate the distance from the center
+    float noiseValue = noise(vec2(distance * frequency + time, time)); // generate Simplex noise at the given frequency and time
+    vec2 noiseVector = vec2(cos(noiseValue), sin(noiseValue)); // convert noise value to a vector
+    return noiseVector * amplitude * (1.0 - distance); // apply amplitude and distance attenuation
+}
+
+vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+float snoise(vec2 v) {
+    const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
+                        0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)
+                        -0.577350269189626,  // -1.0 + 2.0 * C.x
+                        0.024390243902439); // 1.0 / 41.0
+    vec2 i  = floor(v + dot(v, C.yy) );
+    vec2 x0 = v -   i + dot(i, C.xx);
+    vec2 i1;
+    i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+    vec4 x12 = x0.xyxy + C.xxzz;
+    x12.xy -= i1;
+    i = mod289(i); // Avoid truncation effects in permutation
+    vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+        + i.x + vec3(0.0, i1.x, 1.0 ));
+
+    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+    m = m*m ;
+    m = m*m ;
+    vec3 x = 2.0 * fract(p * C.www) - 1.0;
+    vec3 h = abs(x) - 0.5;
+    vec3 ox = floor(x + 0.5);
+    vec3 a0 = x - ox;
+    m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+    vec3 g;
+    g.x  = a0.x  * x0.x  + h.x  * x0.y;
+    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+    return 130.0 * dot(m, g);
+}
+
+void main() {
+    vec2 u_resolution = vec2(w,h);  
+    vec2 st = gl_FragCoord.xy/u_resolution.xy;
+    vec2 uv = vTexCoord;
+    vec2 uv_2 = vTexCoord;
+
+    vec2 q = gl_FragCoord.xy/u_resolution.xy*.5;
+    vec2 p = -1.0 + 0.650 * q;
+    p.x *= u_resolution.x/u_resolution.y;
+
+    vec2 pos = vec2(st.x*0.7 + (u_time*0.18), st.y*0.17 + (u_time*.18));
+    vec3 dist = vec3(snoise(pos)*u_mouse.y);
+    vec2 distorter = vec2(dist.rg) * vec2(0.01);
+
+    //vignette
+    ///////////////
+    float r = length( p * 0.35);
+    vec3 col = vec3(0.64,0.25,0.0 );
+
+    float f = fbm( 7.0*p );
+    col = mix(col, vec3(1.0,1.0,1.0),f);
+
+    f = smoothstep( .19, 0.92, r );
+    col = mix( col, vec3(0.0), f+1.0 );
+    ///////////////
+
+    //patina
+    /////////////
+    float r2 = length( uv * 200.0);
+    vec3 col2 = vec3(0.0,0.0,0.0 );
+
+    float f2 = fbm( 20.0*-p );
+    col2 = mix(-col2, vec3(-0.6,0.6,0.6),f2);
+
+    f2 = smoothstep( .19, 0.92, r2 );
+    col2 = mix( col2, -vec3(0.0),f2+0.5);
+    //////////////
+
+    vec4 distortedFlower = texture2D(theWall, fract(uv)+distorter)+vec4(col2,0.30);
+
+    vec4 distortedBackground = texture2D(theFigureInTheWall, fract(uv_2)+distorter);
+    vec4 flowerBackground = distortedFlower * distortedFlower.a + distortedBackground * (1.0 - distortedFlower.a);
+
+    gl_FragColor = vec4(col,1.0)+flowerBackground;
+}
+`;
+
+let provokingCrawlingUp = 0, provokingCrawlingUpAndLeft = 1,provokingCrawlingUpLeft = 2,provokingCrawlingDownAndLeft = 3,provokingCrawlingDown = 4,provokingCrawlingDownAndRight = 5,provokingCrawlingRight = 6,provokingCrawlingUpAndRight = 7;
+let imConflictedButSittingWithMyself;
+let iWasMoving = 2,throughSpace = 5,aFaintFigureMovingBackAndFourth,aFaintFigureMovingUpAndDown;
+
+let aFormBeganToTakeShape = [
+                  {aCrawlingMovementOfColor:['e16c58','f89c2b','db391e','db391e','84372a','7c0a0a','7c0a0a'], interminableGrotesque:'ffd59a', wavesOfOpticHorrorInLightRed:230, wavesOfOpticHorrorInDarkRed:230, wavesOfOpticHorrorInLightGreen:120, wavesOfOpticHorrorInDarkGreen:160, wavesOfOpticHorrorInLightBlue:110, wavesOfOpticHorrorInDarkBlue:120, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'a9b55b', headlongPlungesOfEqualDistraction:'ff5fe3',aCommonCenter:'7c0a0a', outlinesOfConfusion:'7c0a0a', aFormlessFigure:2, lookingBackAtMe:1.0, lookingBackAtHerself:0.0, hallucinations:4.0}, //1
+                  {aCrawlingMovementOfColor:['e5cd00','867800','f35a1b','f38533','4E3620','a99700','4E3620'], interminableGrotesque:'e03500', wavesOfOpticHorrorInLightRed:240, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:200, wavesOfOpticHorrorInDarkGreen:220, wavesOfOpticHorrorInLightBlue:120, wavesOfOpticHorrorInDarkBlue:140, wavesOfOpticHorrorFading:.04, SproutingEndlessConvolution:'837c51', headlongPlungesOfEqualDistraction:'fff4d8',aCommonCenter:'fff4d8', outlinesOfConfusion:'fff4d8', aFormlessFigure:0, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:0.0}, //3
+                  {aCrawlingMovementOfColor:['57ca8f','f68d40','f68d40','35778E','4cc1e9','f43628','ff7a30'], interminableGrotesque:'b5dafb', wavesOfOpticHorrorInLightRed:250, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:110, wavesOfOpticHorrorInDarkGreen:140, wavesOfOpticHorrorInLightBlue:70, wavesOfOpticHorrorInDarkBlue:90, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'867c51', headlongPlungesOfEqualDistraction:'f4effd',aCommonCenter:'f43628', outlinesOfConfusion:'f4effd', aFormlessFigure:9, lookingBackAtMe:4.0, lookingBackAtHerself:2.0, hallucinations:2.0}, //4
+                  {aCrawlingMovementOfColor:['c1acd1','c9ac8f','f85d52','bf927e','cac145','c5afd5','f4ee9f'], interminableGrotesque:'9e744a', wavesOfOpticHorrorInLightRed:200, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:110, wavesOfOpticHorrorInDarkGreen:150, wavesOfOpticHorrorInLightBlue:50, wavesOfOpticHorrorInDarkBlue:100, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'befa07', headlongPlungesOfEqualDistraction:'ff230a',aCommonCenter:'feefc1', outlinesOfConfusion:'fe430f', aFormlessFigure:3, lookingBackAtMe:5.0, lookingBackAtHerself:2.0, hallucinations:30.0}, //6
+                  {aCrawlingMovementOfColor:['ffeab0','f9a498','ce333e','ea3d5e','951b12','ffeab0','611b1d'], interminableGrotesque:'c0a6e3', wavesOfOpticHorrorInLightRed:215, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:120, wavesOfOpticHorrorInDarkGreen:130, wavesOfOpticHorrorInLightBlue:30, wavesOfOpticHorrorInDarkBlue:60, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'0a6845', headlongPlungesOfEqualDistraction:'d1d649',aCommonCenter:'7b696f', outlinesOfConfusion:'d1d649', aFormlessFigure:4, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:0.0}, //7
+                  {aCrawlingMovementOfColor:['bc5b2b','744E48','68342F','636200','8D674E','513934','823B30'], interminableGrotesque:'513c37', wavesOfOpticHorrorInLightRed:40, wavesOfOpticHorrorInDarkRed:55, wavesOfOpticHorrorInLightGreen:40, wavesOfOpticHorrorInDarkGreen:55, wavesOfOpticHorrorInLightBlue:30, wavesOfOpticHorrorInDarkBlue:50, wavesOfOpticHorrorFading:.04, SproutingEndlessConvolution:'837c51', headlongPlungesOfEqualDistraction:'ff6d3c',aCommonCenter:'513934', outlinesOfConfusion:'837c51', aFormlessFigure:1, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:20.0}, //8
+                  {aCrawlingMovementOfColor:['b02529','d9d56a','eb9c2a','b55b91','b02529','e3633d','b02529'], interminableGrotesque:'020101', wavesOfOpticHorrorInLightRed:160, wavesOfOpticHorrorInDarkRed:170, wavesOfOpticHorrorInLightGreen:160, wavesOfOpticHorrorInDarkGreen:165, wavesOfOpticHorrorInLightBlue:160, wavesOfOpticHorrorInDarkBlue:165, wavesOfOpticHorrorFading:.04, SproutingEndlessConvolution:'857c51', headlongPlungesOfEqualDistraction:'8c8c8c',aCommonCenter:'B68D81', outlinesOfConfusion:'8c8c8c', aFormlessFigure:6, lookingBackAtMe:4.0, lookingBackAtHerself:2.0, hallucinations:5.0}, //9
+                  {aCrawlingMovementOfColor:['dc4056','B4677C','BD7D80','91332E','AB5B64','f23c54','682E46'], interminableGrotesque:'9c9054', wavesOfOpticHorrorInLightRed:215, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:50, wavesOfOpticHorrorInDarkGreen:80, wavesOfOpticHorrorInLightBlue:80, wavesOfOpticHorrorInDarkBlue:120, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'682E46', headlongPlungesOfEqualDistraction:'6c3fa3',aCommonCenter:'95010f', outlinesOfConfusion:'6c3fa3', aFormlessFigure:7, lookingBackAtMe:6.0, lookingBackAtHerself:2.0, hallucinations:10.0}, //10
+                  {aCrawlingMovementOfColor:['3E652D','af75b3','27c9ba','1E3E21','7D7480','c9bc48','af75b3'], interminableGrotesque:'c4d19a', wavesOfOpticHorrorInLightRed:250, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:180, wavesOfOpticHorrorInDarkGreen:230, wavesOfOpticHorrorInLightBlue:205, wavesOfOpticHorrorInDarkBlue:215, wavesOfOpticHorrorFading:.04, SproutingEndlessConvolution:'857c51', headlongPlungesOfEqualDistraction:'27c9ba',aCommonCenter:'1E3E21', outlinesOfConfusion:'27c9ba', aFormlessFigure:8, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:40.0}, //11
+                  {aCrawlingMovementOfColor:['99020f','ff5015','7d60e2','c64d44','ffb87e','cc3025','513e94'], interminableGrotesque:'3adfdc', wavesOfOpticHorrorInLightRed:220, wavesOfOpticHorrorInDarkRed:255, wavesOfOpticHorrorInLightGreen:40, wavesOfOpticHorrorInDarkGreen:180, wavesOfOpticHorrorInLightBlue:110, wavesOfOpticHorrorInDarkBlue:250, wavesOfOpticHorrorFading:.02, SproutingEndlessConvolution:'00aa2c', headlongPlungesOfEqualDistraction:'00aa2c',aCommonCenter:'8a0a33', outlinesOfConfusion:'d20648', aFormlessFigure:5, lookingBackAtMe:3.0, lookingBackAtHerself:2.0, hallucinations:2.0}, //12
+];
+
+let aDividedMind = 6,tryingToCombine;
+let whatAmISeeing;
+let aMovement;
+let myFlowerWasBlooming;
+let asIFallFurtherIntoMyThoughts;
+let womenCreepingOutOfTheWall = 28.3;
+let aNewFlower = [];
+//let aNewFlower;
+
+function setup() {
+  console.log('yellow wallpaper v0.15')
+  pixelDensity(3.0);
+  createCanvas(windowWidth, windowHeight,WEBGL);
+  asIFallFurtherIntoMyThoughts = new Random();
+  aMovement = asIFallFurtherIntoMyThoughts.random_dec()
+  lookingBackAtMe = asIFallFurtherIntoMyThoughts.random_int(1,6);
+  whatAmISeeing = asIFallFurtherIntoMyThoughts.random_int(0,9);
+  myFlowerWasBlooming = asIFallFurtherIntoMyThoughts.random_int(0,9);
+  console.log(whatAmISeeing);
+  iWasLookingAtTheWall = createGraphics(windowWidth,windowHeight);
+  theViewFromThisRoom = createGraphics(windowWidth,windowHeight);
+  bodiesStartedToEmerge = createShader(movementFromTheirFlesh, movementFromTheirSkin);
+  bgNoise();
+  aFlowerInTheMoonlight();
+  for(let i=0;i<aNewFlower.length;i++){
+    aNewFlower[i].display();
+  }
+  //aNewFlower.display();
+}
+function draw() {
+  if (/\bHeadlessChrome/.test(navigator.userAgent)) { 
+    // we are in the headless context
+    womenCreepingOutOfTheWall = aFormBeganToTakeShape[whatAmISeeing].hallucinations;
+  } else{
+    womenCreepingOutOfTheWall = (mouseX-windowWidth/2)/18;
+  }
+  bodiesStartedToEmerge.setUniform("u_resolution", [width, height]);
+  bodiesStartedToEmerge.setUniform("u_time", millis() / 10000.0);
+  bodiesStartedToEmerge.setUniform("u_mouse", [mouseX, womenCreepingOutOfTheWall]);
+  bodiesStartedToEmerge.setUniform('w', windowWidth/2)
+  bodiesStartedToEmerge.setUniform('h', windowHeight/2)
+  bodiesStartedToEmerge.setUniform('theWall', iWasLookingAtTheWall);
+  bodiesStartedToEmerge.setUniform('theFigureInTheWall', theViewFromThisRoom);
+  bodiesStartedToEmerge.setUniform('noiseSeed', frameCount/100);
+  bodiesStartedToEmerge.setUniform('noiseAmount', 0.05);
+  bodiesStartedToEmerge.setUniform('lookingBackAtMe', lookingBackAtMe);
+  bodiesStartedToEmerge.setUniform('lookingBackAtHerself', aFormBeganToTakeShape[whatAmISeeing].lookingBackAtHerself);
+  shader(bodiesStartedToEmerge);
+  noStroke();
+  plane(width, height);
+}
+function aFlowerInTheMoonlight(){
+
+let space = asIFallFurtherIntoMyThoughts.random_int(100,windowWidth);
+
+    if(myFlowerWasBlooming == 0 || myFlowerWasBlooming == 5){     
+      for(let x = 0; x < width+50; x+=space){
+        for(let y = 0; y < height+50; y+=space){
+          let a = new Chrysanthemum(x,y,0,space/1000);
+          let b = new Chrysanthemum(x+space/2,y+space/2,0,space/1000);
+          aNewFlower.push(a);
+          aNewFlower.push(b);
+        }
+      }
+
+    } else if (myFlowerWasBlooming == 1 || myFlowerWasBlooming == 6){
+      for(let x = 0; x < width+50; x+=space){
+        for(let y = 0; y < height+50; y+=space){
+          let a = new Hydrangea(x,y,0,space/1000);
+          let b = new Hydrangea(x+space/2,y+space/2,0,space/1000);
+          aNewFlower.push(a);
+          aNewFlower.push(b);
+        }
+      }
+    } else if (myFlowerWasBlooming == 2 || myFlowerWasBlooming == 7){
+      for(let x = 0; x < width+50; x+=space){
+        for(let y = 0; y < height+50; y+=space){
+          let a = new PoetsNarcissus(x,y,0,space/1000);
+          let b = new PoetsNarcissus(x+space/2,y+space/2,0,space/1000);
+          aNewFlower.push(a);
+          aNewFlower.push(b);
+        }
+      }
+    } else if (myFlowerWasBlooming == 3 || myFlowerWasBlooming == 8){
+      for(let x = 0; x < width+50; x+=space){
+        for(let y = 0; y < height+50; y+=space){
+          let a = new Poppy(x,y,0,space/1000);
+          let b = new Poppy(x+space/2,y+space/2,0,space/1000);
+          aNewFlower.push(a);
+          aNewFlower.push(b);
+        }
+      }
+    } else if (myFlowerWasBlooming == 4 || myFlowerWasBlooming == 9){
+      for(let x = 0; x < width+50; x+=space){
+        for(let y = 0; y < height+50; y+=space){
+          let a = new Foxglove(x,y,0,space/1000);
+          let b = new Foxglove(x+space/2,y+space/2,0,space/1000);
+          aNewFlower.push(a);
+          aNewFlower.push(b);
+        }
+      }
+    }
+}
+function bgNoise(){
+  aFaintFigureMovingBackAndFourth = width / 2;
+  aFaintFigureMovingUpAndDown = height / 2;
+  theViewFromThisRoom.background("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
+  for (let j = 0; j < 200; j++){
+    theViewFromThisRoom.noStroke();
+    theViewFromThisRoom.fill('rgba('+asIFallFurtherIntoMyThoughts.random_int(aFormBeganToTakeShape[whatAmISeeing].wavesOfOpticHorrorInLightRed,aFormBeganToTakeShape[whatAmISeeing].wavesOfOpticHorrorInDarkRed)+','+asIFallFurtherIntoMyThoughts.random_int(aFormBeganToTakeShape[whatAmISeeing].wavesOfOpticHorrorInLightGreen,aFormBeganToTakeShape[whatAmISeeing].wavesOfOpticHorrorInDarkGreen)+','+asIFallFurtherIntoMyThoughts.random_int(aFormBeganToTakeShape[whatAmISeeing].wavesOfOpticHorrorInLightBlue,aFormBeganToTakeShape[whatAmISeeing].wavesOfOpticHorrorInDarkBlue)+', '+aFormBeganToTakeShape[whatAmISeeing].wavesOfOpticHorrorFading+')');
+    for (let i = 0; i <= width; i++) {
+        imConflictedButSittingWithMyself = asIFallFurtherIntoMyThoughts.random_int(0, 8);
+      if (imConflictedButSittingWithMyself == provokingCrawlingUp) {aFaintFigureMovingUpAndDown -= iWasMoving;
+      } else if (imConflictedButSittingWithMyself == provokingCrawlingUpAndLeft) {aFaintFigureMovingBackAndFourth += iWasMoving;aFaintFigureMovingUpAndDown -= iWasMoving;
+      } else if (imConflictedButSittingWithMyself == provokingCrawlingUpLeft) {aFaintFigureMovingBackAndFourth += iWasMoving;
+      } else if (imConflictedButSittingWithMyself == provokingCrawlingDownAndLeft) {aFaintFigureMovingBackAndFourth += iWasMoving;aFaintFigureMovingUpAndDown += iWasMoving;
+      } else if (imConflictedButSittingWithMyself == provokingCrawlingDown) {aFaintFigureMovingUpAndDown += iWasMoving;
+      } else if (imConflictedButSittingWithMyself == provokingCrawlingDownAndRight) {aFaintFigureMovingBackAndFourth -= iWasMoving;aFaintFigureMovingUpAndDown += iWasMoving;
+      } else if (imConflictedButSittingWithMyself == provokingCrawlingRight) {aFaintFigureMovingBackAndFourth -= iWasMoving;
+      } else if (imConflictedButSittingWithMyself == provokingCrawlingUpAndRight) {aFaintFigureMovingBackAndFourth -= iWasMoving;aFaintFigureMovingUpAndDown -= iWasMoving;
+      }
+      if (aFaintFigureMovingBackAndFourth > width) aFaintFigureMovingBackAndFourth = 0;
+      if (aFaintFigureMovingBackAndFourth < 0) aFaintFigureMovingBackAndFourth = width;
+      if (aFaintFigureMovingUpAndDown < 0) aFaintFigureMovingUpAndDown = height;
+      if (aFaintFigureMovingUpAndDown > height) aFaintFigureMovingUpAndDown = 0;
+      theViewFromThisRoom.ellipse(aFaintFigureMovingBackAndFourth + iWasMoving / 2, aFaintFigureMovingUpAndDown + iWasMoving / 2, throughSpace, throughSpace);
+    }
+  }
+}
+function windowResized() {
+  if (/\bHeadlessChrome/.test(navigator.userAgent)) { 
+    // we are in the headless context
+    womenCreepingOutOfTheWall = 2.0;
+    resizeCanvas(2400, 2400);
+    bodiesStartedToEmerge.setUniform("u_mouse", [0.0, 0.0]);
+    noStroke();
+    plane(2400, 2400);
+  } else{
+    resizeCanvas(windowWidth, windowHeight);
+    bodiesStartedToEmerge.setUniform("u_mouse", [0.0, 0.0]);
+    setup();
+  }
+}
+class Random {
+    constructor() {
+      this.useA = false;
+      let sfc32 = function (uint128Hex) {
+        let a = parseInt(uint128Hex.substr(0, 8), 16);
+        let b = parseInt(uint128Hex.substr(8, 8), 16);
+        let c = parseInt(uint128Hex.substr(16, 8), 16);
+        let d = parseInt(uint128Hex.substr(24, 8), 16);
+        return function () {
+          a |= 0; b |= 0; c |= 0; d |= 0;
+          let t = (((a + b) | 0) + d) | 0;
+          d = (d + 1) | 0;
+          a = b ^ (b >>> 9);
+          b = (c + (c << 3)) | 0;
+          c = (c << 21) | (c >>> 11);
+          c = (c + t) | 0;
+          return (t >>> 0) / 4294967296;
+        };
+      };
+      // seed prngA with first half of tokenData.hash
+      this.prngA = new sfc32(tokenData.hash.substr(2, 32));
+      // seed prngB with second half of tokenData.hash
+      this.prngB = new sfc32(tokenData.hash.substr(34, 32));
+      for (let i = 0; i < 1e6; i += 2) {
+        this.prngA();
+        this.prngB();
+      }
+    }
+    // random number between 0 (inclusive) and 1 (exclusive)
+    random_dec() {
+      this.useA = !this.useA;
+      return this.useA ? this.prngA() : this.prngB();
+    }
+    // random number between a (inclusive) and b (exclusive)
+    random_num(a, b) {
+      return a + (b - a) * this.random_dec();
+    }
+    // random integer between a (inclusive) and b (inclusive)
+    // requires a < b for proper probability distribution
+    random_int(a, b) {
+      return Math.floor(this.random_num(a, b + 1));
+    }
+    // random boolean with p as percent liklihood of true
+    random_bool(p) {
+      return this.random_dec() < p;
+    }
+    // random value in an array of items
+    random_choice(list) {
+      return list[this.random_int(0, list.length - 1)];
+    }
+  }
+class Chrysanthemum{
+    constructor(_xpos,_ypos,_rot,_size){
+      this.xpos = _xpos;
+      this.ypos = _ypos;
+      this.rot = _rot;
+      this.size = _size;
+    }
+    display(){
+      iWasLookingAtTheWall.push();
+        iWasLookingAtTheWall.translate(this.xpos,this.ypos);
+        iWasLookingAtTheWall.scale(this.size); 
+        iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].SproutingEndlessConvolution);
+        iWasLookingAtTheWall.noFill();
+        iWasLookingAtTheWall.bezier(0,0,30,50,10,height/4,30,height/3);
+        for(let i = 3; i < 30; i++){
+            iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
+            iWasLookingAtTheWall.rotate(2.3*i);
+            iWasLookingAtTheWall.strokeWeight(3);
+            iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
+            iWasLookingAtTheWall.bezier(0,-windowHeight/100,windowHeight/6,windowHeight/11,0,windowHeight/1.7,0,0);
+          }
+        iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
+        iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCommonCenter);
+        iWasLookingAtTheWall.ellipse(0,0,windowHeight/20);
+        iWasLookingAtTheWall.pop();
+    }
+  }
+class Hydrangea{
+    constructor(_xpos,_ypos,_rot,_size){
+      this.xpos = _xpos;
+      this.ypos = _ypos;
+      this.rot = _rot;
+      this.size = _size;
+    }
+    display(){
+      iWasLookingAtTheWall.push();
+      iWasLookingAtTheWall.translate(this.xpos,this.ypos);
+      iWasLookingAtTheWall.scale(this.size); 
+      iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].SproutingEndlessConvolution);
+      iWasLookingAtTheWall.strokeWeight(8);
+      iWasLookingAtTheWall.noFill();
+      iWasLookingAtTheWall.bezier(0,0,windowHeight/10,windowHeight/10,windowHeight/100,windowHeight/6,windowHeight/50,height/4);
+      let aFirstMoonlitFigure = [-windowWidth/10,-windowWidth/4,-windowWidth/0,-windowWidth/6,-windowWidth/9,-windowWidth/15];
+      let aSecondMoonlitFigure = [-windowWidth/10,-windowWidth/4,-windowWidth/4,-windowWidth/4.5,-windowWidth/5,-windowWidth/6];
+      let aThirdMoonlitFigure = [-windowWidth/12,-windowWidth/10,-windowWidth/15,-windowWidth/20,-windowWidth/40,0];
+      let aFourthMoonlitFigure = [windowWidth/3,windowWidth/3,windowWidth/4,windowWidth/4,windowWidth/4.5,windowWidth/6];
+      let aFifthMoonlitFigure = [5,2,1,1,2,0];
+      let aSixthMoonlitFigure = [8,11,14,14,10,10];
+      for(let i = 0; i < 6; i++){
+        iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
+        iWasLookingAtTheWall.noStroke();
+        iWasLookingAtTheWall.push()
+        iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
+        iWasLookingAtTheWall.strokeWeight(2)
+        iWasLookingAtTheWall.rotate(PI / 1.5)
+        iWasLookingAtTheWall.bezier(0,0,
+                aFirstMoonlitFigure[i],aSecondMoonlitFigure[i],
+                aThirdMoonlitFigure[i],aFourthMoonlitFigure[i],
+                aFifthMoonlitFigure[i],aSixthMoonlitFigure[i]
+                );
+        iWasLookingAtTheWall.pop();
+        }
+        iWasLookingAtTheWall.pop();
+    }
+  }
+class PoetsNarcissus{
+    constructor(_xpos,_ypos,_rot,_size){
+      this.xpos = _xpos;
+      this.ypos = _ypos;
+      this.rot = _rot;
+      this.size = _size;
+    }
+
+    display(){
+        iWasLookingAtTheWall.push();
+        iWasLookingAtTheWall.translate(this.xpos,this.ypos);
+        iWasLookingAtTheWall.scale(this.size);
+        iWasLookingAtTheWall.push();
+        iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].SproutingEndlessConvolution);
+        iWasLookingAtTheWall.strokeWeight(6);
+        iWasLookingAtTheWall.noFill();
+        iWasLookingAtTheWall.bezier(0,0,30,50,10,height/4,30,height/3);
+        iWasLookingAtTheWall.pop();
+        iWasLookingAtTheWall.push()
+        for(let i = 0; i < 6; i++){
+          iWasLookingAtTheWall.rotate(1.1);
+          iWasLookingAtTheWall.fill('#'+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
+          iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
+          iWasLookingAtTheWall.strokeWeight(2);
+          iWasLookingAtTheWall.beginShape();
+          iWasLookingAtTheWall.curveVertex(0,0);
+          iWasLookingAtTheWall.curveVertex(0,0);
+          iWasLookingAtTheWall.curveVertex(windowHeight/8,windowHeight/15);
+          iWasLookingAtTheWall.curveVertex(windowHeight/5, windowHeight/4);
+          iWasLookingAtTheWall.curveVertex(windowHeight/5.5, windowHeight/5);
+          iWasLookingAtTheWall. curveVertex(0, -windowHeight/80);
+          iWasLookingAtTheWall.curveVertex(0,0);
+          iWasLookingAtTheWall.endShape();
+        }
+        iWasLookingAtTheWall.pop();
+        iWasLookingAtTheWall.push();
+        iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
+        iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].outlinesOfConfusion);
+        iWasLookingAtTheWall.strokeWeight(2);
+        iWasLookingAtTheWall.ellipse(0,0,windowHeight/20);
+        iWasLookingAtTheWall.pop();
+        iWasLookingAtTheWall.pop();
+    }
+  }
+class Poppy{
+    constructor(_xpos,_ypos,_rot,_size){
+      this.xpos = _xpos;
+      this.ypos = _ypos;
+      this.rot = _rot;
+      this.size = _size;
+    }
+
+    display(){
+      iWasLookingAtTheWall.push();
+      iWasLookingAtTheWall.translate(this.xpos,this.ypos);
+      iWasLookingAtTheWall.scale(this.size);
+      iWasLookingAtTheWall.push();
+      iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].SproutingEndlessConvolution);
+      iWasLookingAtTheWall.strokeWeight(6);
+      iWasLookingAtTheWall.noFill();
+      iWasLookingAtTheWall.bezier(0,0,30,50,10,height/4,30,height/3);
+      iWasLookingAtTheWall.pop();
+      for(let sheLovesMe = 3; sheLovesMe < 8; sheLovesMe++){
+        iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
+        iWasLookingAtTheWall.push();
+        iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
+        iWasLookingAtTheWall.strokeWeight(3);
+        iWasLookingAtTheWall.rotate(PI/2.5*sheLovesMe);
+        iWasLookingAtTheWall.bezier(0,0,height/3,width/20,0,-width/3,0,0);
+        iWasLookingAtTheWall.pop();
+      }
+      iWasLookingAtTheWall.push();
+      iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].outlinesOfConfusion);
+      iWasLookingAtTheWall.strokeWeight(3);
+      iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCommonCenter);
+      iWasLookingAtTheWall.ellipse(0,0,width/20);
+      iWasLookingAtTheWall.pop();
+      iWasLookingAtTheWall.pop();
+    }
+  }
+class Foxglove{
+    constructor(_xpos,_ypos,_rot,_size){
+      this.xpos = _xpos;
+      this.ypos = _ypos;
+      this.rot = _rot;
+      this.size = _size;
+    }
+    display(){
+      iWasLookingAtTheWall.push();
+      iWasLookingAtTheWall.translate(this.xpos,this.ypos);
+      iWasLookingAtTheWall.scale(this.size);
+      iWasLookingAtTheWall.push();
+      iWasLookingAtTheWall.translate(0,windowHeight/-10);
+      iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].SproutingEndlessConvolution);
+      iWasLookingAtTheWall.strokeWeight(18);
+      iWasLookingAtTheWall.noFill();
+      iWasLookingAtTheWall.bezier(0,windowHeight/-8,0,windowHeight/5.5,windowHeight/80,windowHeight/6,windowHeight/80,windowHeight/1.9);
+      iWasLookingAtTheWall.pop();
+      //petals right
+      let sheLovesMe = 0;
+      iWasLookingAtTheWall.push();
+      //iWasLookingAtTheWall.translate(windowWidth/2,windowHeight/2.7);
+      for(let i = 0; i < aDividedMind; i++){
+          iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
+          iWasLookingAtTheWall.strokeWeight(4);
+          iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
+          //iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].headlongPlungesOfEqualDistraction);
+          iWasLookingAtTheWall.push();
+          iWasLookingAtTheWall.translate(0,(sheLovesMe*windowHeight/13)-windowHeight/5);
+          iWasLookingAtTheWall.rotate(0.1);
+          iWasLookingAtTheWall.bezier(0,0,(windowHeight/90)*sheLovesMe,(windowHeight/10)*sheLovesMe,(windowHeight/10)*sheLovesMe,(windowHeight/40)*sheLovesMe,0,0);
+          iWasLookingAtTheWall.pop();
+          sheLovesMe++
+      }
+      iWasLookingAtTheWall.pop();
+      let sheLovesMeNot = 0;
+      iWasLookingAtTheWall.push();
+      //iWasLookingAtTheWall.translate(windowWidth/2,windowHeight/2.7);
+        for(let i = 0; i < aDividedMind; i++){
+            iWasLookingAtTheWall.fill("#"+aFormBeganToTakeShape[whatAmISeeing].aCrawlingMovementOfColor[asIFallFurtherIntoMyThoughts.random_int(0,6)]);
+            iWasLookingAtTheWall.strokeWeight(4);
+            iWasLookingAtTheWall.stroke("#"+aFormBeganToTakeShape[whatAmISeeing].interminableGrotesque);
+            iWasLookingAtTheWall. push()
+            iWasLookingAtTheWall.translate(0,(sheLovesMeNot*windowHeight/14)-windowHeight/5);
+            iWasLookingAtTheWall. rotate(0.1)
+            iWasLookingAtTheWall.bezier(0,0,0*sheLovesMeNot,(windowHeight/10)*sheLovesMeNot,-(windowHeight/15)*sheLovesMeNot,(windowHeight/40)*sheLovesMeNot,0,0);
+            iWasLookingAtTheWall.pop()
+            sheLovesMeNot++
+      }
+      iWasLookingAtTheWall.pop();
+      iWasLookingAtTheWall.pop();
+    }
+  }
+    </script>
+  </body>
+</html>
