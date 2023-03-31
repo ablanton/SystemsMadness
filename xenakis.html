@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.1/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.1/addons/p5.sound.min.js"></script>
+    <style>html, body{margin: 0;padding: 0;} canvas{display: block;}</style>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+<script>
+
+function genTokenData(projectNum) {
+  let data = {};
+  let hash = "0x";
+  for (var i = 0; i < 64; i++) {
+    hash += Math.floor(Math.random() * 16).toString(16);
+  }
+  data.hash = hash;
+  data.tokenId = (projectNum * 1000000 + Math.floor(Math.random() * 1000)).toString();
+  return data;
+}
+let tokenData = genTokenData(123);
+
+////////////////// Audio
+var osc, envelope, delay, reverb;
+var playing = false;
+
+var xenakis = [];
+var xenakis_touch = [];
+var canstart = true;
+
+// Keep track of our socket connection
+var socket;
+
+// global var
+var globalX;
+var globalY;
+
+var speed = 1.; 
+var value = 0.0;
+var MAX = 255;
+var fade = 255;
+
+////////////////// Begin Setup
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+
+  envelope = new p5.Env(0.01, 0.4, 1, 0.3);
+  
+  osc = new p5.Oscillator();
+  osc.setType('sine');
+  
+  //osc.disconnect(); 
+  
+  reverb = new p5.Reverb();
+  delay = new p5.Delay();
+  reverb.process(osc, 5, 0.90);
+  
+  osc.freq(parseFloat(440));
+  
+  // socket = io.connect('http://localhost:3001');
+  
+  // socket.on('message', function(msg) {
+  //     //console.log(msg);
+  //     value = msg.value
+  //     divnum = msg.something
+  //     //document.getElementById("message"+divnum).innerHTML = value;
+      
+  //     if(msg.something == 1){
+  //      globalY = msg.value;
+  //     } else if(msg.something == 0) {
+  //      globalX = msg.value;
+  //     }
+        
+  //     var timer = random(5)*1000;
+  //     setTimeout(object,timer);
+      
+  //   });
+}
+
+////////////////// Begin Draw
+function draw() {
+
+  background(230, 10);
+  for (var i=0; i<xenakis.length; i++) {
+    xenakis[i].display();
+  }
+  for (var i=0; i<xenakis_touch.length; i++) {
+    xenakis_touch[i].display();
+  }
+  
+  noStroke();
+  fill(fade, fade, fade, fade);
+  //console.log(fade);
+  text("touch to start", width/2.5, 200);
+}
+
+function touchStarted() {
+//if(fade > 1){
+  for(fade = 255; fade > 0; fade = ((sin(radians(value))+1)/2)*MAX){
+  // text fade
+  value+=speed;
+  }
+  //}
+}
+
+function mouseDragged(){
+  if(canstart) {
+     	osc.start();
+     	canstart = false;
+     	}
+  
+  xenakis_touch.push(new Abstract_touch()),4000
+  
+  var ender = setTimeout(endshape_touch,8000);
+  
+  osc.freq(mouseX);
+  envelope.play(osc);
+  delay.process(osc, .99, .95, 200);
+  delay.setType('pingPong'); 
+}
+
+function mousePressed(){
+  if(canstart) {
+     	osc.start();
+     	canstart = false;
+     	}
+  xenakis_touch.push(new Abstract_touch());
+  
+  var ender = setTimeout(endshape_touch,8000);
+  
+  osc.freq(mouseX);
+  envelope.play(osc);
+  delay.process(osc, .99, .95, 200);
+  delay.setType('pingPong'); 
+  
+  for(fade = 255; fade > 0; fade = ((sin(radians(value))+1)/2)*MAX){
+  // text fade
+  value+=speed;
+  }
+}
+
+function object(){
+    xenakis.push(new Abstract());
+    var ender = setTimeout(endshape,3000);
+  
+    osc.freq(parseFloat(globalX));
+    envelope.play(osc);
+    delay.process(osc, .99, .95, 200);
+    delay.setType('pingPong');
+}
+
+////////////////// End Shapes after time limit
+function endshape() {
+    xenakis.shift();
+    //console.log('ended');
+}
+
+function endshape_touch() {
+    xenakis_touch.shift();
+    console.log('ended');
+}
+
+////////////////// Abstract Shape Class
+
+function Abstract() {
+
+  console.log(globalX);
+  console.log(globalY);
+    
+  this.x = globalX/1;
+  this.y = globalY/1;
+  this.x1 = random(5);
+  this.y1 = random(5);
+  this.x2 = random(5);
+  this.y2 = random(5);
+  this.x3 = random(5);
+  this.y3 = random(5);
+  this.on = true;
+  this.diameter = random(10, 30);
+  this.speed = 1;
+  
+  if(canstart) {
+    osc.start();
+    canstart = false;
+  }
+
+  this.display = function() {
+    if (this.on === true) {
+    fill(0+this.diameter,205);
+      strokeWeight(4);
+      stroke(240);
+      this.diameter += 0.05;
+      quad(
+        this.x+(-this.diameter),this.y+(-this.diameter),
+        this.x+this.diameter*this.x1,this.y+(-this.diameter)*this.y1,
+        this.x+(-this.diameter)*this.x2,this.y+this.diameter*this.y2,
+        this.x+this.diameter*this.x3,this.y+this.diameter*this.y3
+        );
+    }
+  };
+}
+
+function Abstract_touch() {
+    
+  this.x = mouseX;
+  this.y = mouseY;
+  this.x1 = random(5);
+  this.y1 = random(5);
+  this.x2 = random(5);
+  this.y2 = random(5);
+  this.x3 = random(5);
+  this.y3 = random(5);
+  this.on = true;
+  this.diameter = random(10, 30);
+  this.speed = 1;
+  
+  if(canstart) {
+    osc.start();
+    canstart = false;
+  }
+
+  this.display = function() {
+    if (this.on === true) {
+    fill(0+this.diameter,220,120,205);
+      strokeWeight(4);
+      stroke(240);
+      this.diameter += 0.5;
+      quad(
+        this.x+(-this.diameter),this.y+(-this.diameter),
+        this.x+this.diameter*this.x1,this.y+(-this.diameter)*this.y1,
+        this.x+(-this.diameter)*this.x2,this.y+this.diameter*this.y2,
+        this.x+this.diameter*this.x3,this.y+this.diameter*this.y3
+        );
+    }
+  };
+}
+
+
+
+
+
+class Random {
+    constructor() {
+      this.useA = false;
+      let sfc32 = function (uint128Hex) {
+        let a = parseInt(uint128Hex.substr(0, 8), 16);
+        let b = parseInt(uint128Hex.substr(8, 8), 16);
+        let c = parseInt(uint128Hex.substr(16, 8), 16);
+        let d = parseInt(uint128Hex.substr(24, 8), 16);
+        return function () {
+          a |= 0; b |= 0; c |= 0; d |= 0;
+          let t = (((a + b) | 0) + d) | 0;
+          d = (d + 1) | 0;
+          a = b ^ (b >>> 9);
+          b = (c + (c << 3)) | 0;
+          c = (c << 21) | (c >>> 11);
+          c = (c + t) | 0;
+          return (t >>> 0) / 4294967296;
+        };
+      };
+      this.prngA = new sfc32(tokenData.hash.substr(2, 32));
+      this.prngB = new sfc32(tokenData.hash.substr(34, 32));
+      for (let i = 0; i < 1e6; i += 2) {
+        this.prngA();
+        this.prngB();
+      }
+    }
+    random_dec() {
+      this.useA = !this.useA;
+      return this.useA ? this.prngA() : this.prngB();
+    }
+    random_num(a, b) {
+      return a + (b - a) * this.random_dec();
+    }
+    random_int(a, b) {
+      return Math.floor(this.random_num(a, b + 1));
+    }
+    random_bool(p) {
+      return this.random_dec() < p;
+    }
+    random_choice(list) {
+      return list[this.random_int(0, list.length - 1)];
+    }
+  }
+    </script>
+  </body>
+</html>

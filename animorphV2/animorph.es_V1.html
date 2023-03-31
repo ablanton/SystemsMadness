@@ -1,0 +1,30 @@
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<script src="maptastic.js"></script>
+	<style>
+		body{margin:0;padding:0;background:black;color:white;}
+		.input {font-size: 16px;font-size: max(16px, 1em);border-style:none;padding: 0.25em 0.5em;background-color: #000; color:#4f4;}
+		::placeholder {color: #444;opacity: 1;}
+		[contenteditable] {outline: 0px solid transparent;}
+	</style>
+
+	<script>
+		function go(url) {
+		  document.getElementById('stretch').src = url;
+		}
+	</script>
+</head>
+
+<body>
+	<div id="wrap">
+	<iframe src="https://newart.city/show/antiphon?skip-blocker&no-gravity&x=60&y=50&z=10&facing-artwork-id=5603&no-ui" width="1920" height="1080" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" id="stretch" style="position: fixed; display: block; top: 0px; left: 0px; padding: 0px; margin: 0px; transform: matrix3d(.2, -0.03, 0, 0.000693123, 0.0784869, 1.18422, 0, -0.000262164, 0, 0, 1, 0, 103, 148, 0, 1); transform-origin: 0px 0px 0px; visibility: visible;"></iframe>
+    </div>
+
+	<script>Maptastic("stretch");</script>
+	<canvas width="2560" height="1440" style="display: block; position: fixed; top: 40px; left: 0px; z-index: 1000000; cursor: default;"></canvas>
+	<input class="input" type="text" onchange="go(this.value)" placeholder="https://antiph.onl" name="link" size="100" contenteditable="true" required>
+
+</body>
+</html>

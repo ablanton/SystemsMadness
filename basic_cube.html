@@ -1,0 +1,61 @@
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+scene.background = new THREE.Color( 0xaaccff );
+
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth,window.innerHeight);
+document.body.appendChild( renderer.domElement );
+
+const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+const cube = new THREE.Mesh( geometry, material );
+scene.add( cube );
+
+camera.position.z = 5;
+
+// //Global state, can be referred to from any callback
+// window.antiphState = {
+//     inputs: [],
+//     geometry: null,
+//     lastMessage: null,
+//     initted: false,
+// };
+// ​
+// //Used to install handlers on room entrance and initialize global vars
+// room.beforeInit = function() {
+//     console.log('beforeInit start');
+//         console.log('Attempting to establish websocket connection');
+//         const wsantiph = "wss://antiph.onl/ws";
+//         const ws = new WebSocket(wsantiph);
+//         ws.onopen = () => {
+//             console.log('Websocket established');
+//         }
+//         //Parse data from Max into room objects 
+//         //Executes everytime we get a message
+//         ws.onmessage = e => {
+//             window.antiphState.lastMessage = e.data;
+//             //Currently, messages come in an array of len 1 of form ['Values: [x, y, x]']
+//             //Regex captures full message, and a group for each index x, y and z as above
+//             let r = /(-?\d+\.?\d*)/g;
+//             let vals = window.antiphState.lastMessage.match(r);
+//             //console.log(vals);​
+//            if (vals && vals.length >= 1) {
+//                 window.antiphState.inputs = vals.map((el) => Number(el));
+//                 //console.log(window.antiphState.inputs);
+//             } else {
+//                 console.log("Unexpected message format: " + window.antiphState.lastMessage)
+//             }
+//         };
+//         window.antiphState.initted = true;
+//         console.log('beforeInit end: ' + window.antiphState.initted);
+// }
+
+function animate() {
+requestAnimationFrame( animate );
+
+cube.rotation.x += 0.01;
+cube.rotation.y += 0.01;
+
+renderer.render( scene, camera );
+};
+animate();
