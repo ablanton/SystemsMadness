@@ -4,7 +4,6 @@
 	<script src="maptastic.js"></script>
 	<style>
 		body{margin:0;padding:0;background:black;color:white;}
-		.input {font-size: 16px;font-size: max(16px, 1em);border-style:none;padding: 0.25em 0.5em;background-color: #000; color:#4f4;}
 		::placeholder {color: #444;opacity: 1;}
 		[contenteditable] {outline: 0px solid transparent;}
 	</style>
@@ -17,13 +16,25 @@
 </head>
 
 <body>
-	<div id="wrap">
-	<iframe src="https://generator-staging-goerli.artblocks.io/0xb614c578062a62714c927cd8193f0b8bfb90055c/136000056" width="1920" height="1080" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" id="stretch" style="position: fixed; display: block; top: 0px; left: 0px; padding: 0px; margin: 0px; transform: matrix3d(.2, -0.03, 0, 0.000693123, 0.0784869, 1.18422, 0, -0.000262164, 0, 0, 1, 0, 103, 148, 0, 1); transform-origin: 0px 0px 0px; visibility: visible;"></iframe>
-    </div>
+	<iframe src="https://www.andrewblanton.com/SystemsMadness/index.html" width="1920" height="1080" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen id="stretch"></iframe>
+	<pre id="controls" width="600" height="250" style="width:600px; height:250px; background:#222222; opacity:0.8;">
+	
+	
 
-	<script>Maptastic("stretch");</script>
-	<canvas width="2560" height="1440" style="display: block; position: fixed; top: 40px; left: 0px; z-index: 1000000; cursor: default;"></canvas>
-	<!-- <input class="input" type="text" onchange="go(this.value)" placeholder="https://antiph.onl" name="link" size="100" contenteditable="true" required> -->
+		
+	Push SHIFT + Spacebar to Reveal Projection Mapping.
 
+	Click and Drag the Wallpaper to fit your Wall.
+
+	Adjust the Corners until Perfect.
+
+	Select the adjusted window and press 's' to turn this window off.
+	</pre>
+	<script>
+	var configObject = {
+		labels: false,
+		layers: ["stretch", "controls"]
+	};
+	var maptastic = Maptastic(configObject);</script>
 </body>
 </html>
